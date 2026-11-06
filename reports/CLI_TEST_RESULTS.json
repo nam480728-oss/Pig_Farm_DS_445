@@ -1,0 +1,80 @@
+[
+  {
+    "command": "python -m scripts.doctor",
+    "returncode": 0,
+    "stdout": "{\n  \"python\": \"3.12.8 (main, Aug 11 2026, 02:20:20) [GCC 15.2.0]\",\n  \"platform\": \"Linux-6.1.155+-x86_64-with-glibc2.43\",\n  \"recommended_python\": \"3.11\",\n  \"dependencies\": {\n    \"PIL\": true,\n    \"yaml\": true,\n    \"matplotlib\": true,\n    \"torch\": false,\n    \"ultralytics\": false\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": "python -m scripts.data_tools --help",
+    "returncode": 0,
+    "stdout": "usage: data_tools.py [-h] [--data DATA] --out OUT {audit,visualize}\n\npositional arguments:\n  {audit,visualize}\n\noptions:\n  -h, --help         show this help message and exit\n  --data DATA\n  --out OUT\n",
+    "stderr": ""
+  },
+  {
+    "command": "python -m scripts.train --help",
+    "returncode": 0,
+    "stdout": "usage: train.py [-h] [--config CONFIG] [--device DEVICE] [--batch BATCH]\n                [--smoke] [--resume RESUME]\n\noptions:\n  -h, --help       show this help message and exit\n  --config CONFIG\n  --device DEVICE\n  --batch BATCH\n  --smoke\n  --resume RESUME\n",
+    "stderr": ""
+  },
+  {
+    "command": "python -m scripts.evaluate --help",
+    "returncode": 0,
+    "stdout": "usage: evaluate.py [-h] --weights WEIGHTS [--data DATA] [--split {val,test}]\n                   [--device DEVICE] [--imgsz IMGSZ] [--out OUT]\n\noptions:\n  -h, --help          show this help message and exit\n  --weights WEIGHTS\n  --data DATA\n  --split {val,test}\n  --device DEVICE\n  --imgsz IMGSZ\n  --out OUT\n",
+    "stderr": ""
+  },
+  {
+    "command": "python -m scripts.analyze --help",
+    "returncode": 0,
+    "stdout": "usage: analyze.py [-h] --csv CSV [--out OUT]\n\noptions:\n  -h, --help  show this help message and exit\n  --csv CSV\n  --out OUT\n",
+    "stderr": ""
+  },
+  {
+    "command": "python -m scripts.video --help",
+    "returncode": 0,
+    "stdout": "usage: video.py [-h] --weights WEIGHTS --source SOURCE --config CONFIG --out\n                OUT [--device DEVICE] --start-time START_TIME\n\noptions:\n  -h, --help            show this help message and exit\n  --weights WEIGHTS\n  --source SOURCE\n  --config CONFIG\n  --out OUT\n  --device DEVICE\n  --start-time START_TIME\n",
+    "stderr": ""
+  },
+  {
+    "command": "python -m scripts.subsets --help",
+    "returncode": 0,
+    "stdout": "usage: subsets.py [-h] --data DATA --metadata METADATA --out OUT\n\noptions:\n  -h, --help           show this help message and exit\n  --data DATA\n  --metadata METADATA\n  --out OUT\n",
+    "stderr": ""
+  },
+  {
+    "command": "python -m scripts.package_model --help",
+    "returncode": 0,
+    "stdout": "usage: package_model.py [-h] --weights WEIGHTS --metrics METRICS [--out OUT]\n\noptions:\n  -h, --help         show this help message and exit\n  --weights WEIGHTS\n  --metrics METRICS\n  --out OUT\n",
+    "stderr": ""
+  },
+  {
+    "command": "python -m scripts.replay --help",
+    "returncode": 0,
+    "stdout": "usage: replay.py [-h] --config CONFIG --frames FRAMES --out OUT\n\noptions:\n  -h, --help       show this help message and exit\n  --config CONFIG\n  --frames FRAMES\n  --out OUT\n",
+    "stderr": ""
+  },
+  {
+    "command": "python -m scripts.evaluate_business --help",
+    "returncode": 0,
+    "stdout": "usage: evaluate_business.py [-h] --truth TRUTH --pred PRED [--counts COUNTS]\n                            [--tolerance TOLERANCE] --out OUT\n\noptions:\n  -h, --help            show this help message and exit\n  --truth TRUTH\n  --pred PRED\n  --counts COUNTS\n  --tolerance TOLERANCE\n  --out OUT\n",
+    "stderr": ""
+  },
+  {
+    "command": "python -m scripts.replay --config examples/demo_config.json --frames examples/frames.jsonl --out reports/verified_demo",
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": "python -m scripts.analyze --csv examples/SYNTHETIC_results.csv --out reports/SYNTHETIC_analysis",
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": "python -m scripts.evaluate_business --truth examples/truth_events.json --pred examples/pred_events.json --counts examples/counts.csv --out reports/SYNTHETIC_business_metrics.json",
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

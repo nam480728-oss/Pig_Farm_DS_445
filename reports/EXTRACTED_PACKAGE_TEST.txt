@@ -1,0 +1,50 @@
+test_bad_bbox (test_system.ContractTests.test_bad_bbox) ... ok
+test_duplicate_id (test_system.ContractTests.test_duplicate_id) ... ok
+test_invalid_event (test_system.ContractTests.test_invalid_event) ... ok
+test_naive_clock (test_system.ContractTests.test_naive_clock) ... ok
+test_valid (test_system.ContractTests.test_valid) ... ok
+test_bad_config (test_system.CountTests.test_bad_config) ... ok
+test_full (test_system.CountTests.test_full) ... ok
+test_gap (test_system.CountTests.test_gap) ... ok
+test_nonmonotonic (test_system.CountTests.test_nonmonotonic) ... ok
+test_over (test_system.CountTests.test_over) ... ok
+test_recount_recovers (test_system.CountTests.test_recount_recovers) ... ok
+test_recount_short (test_system.CountTests.test_recount_short) ... ok
+test_spike (test_system.CountTests.test_spike) ... ok
+test_duplicate_split (test_system.DatasetTests.test_duplicate_split) ... ok
+test_invalid_label (test_system.DatasetTests.test_invalid_label) ... ok
+test_missing_label (test_system.DatasetTests.test_missing_label) ... ok
+test_valid_audit_visualize (test_system.DatasetTests.test_valid_audit_visualize) ... ok
+test_clock (test_system.EscapeTests.test_clock) ... ok
+test_cooldown (test_system.EscapeTests.test_cooldown) ... ok
+test_exact_five (test_system.EscapeTests.test_exact_five) ... ok
+test_gap_reset (test_system.EscapeTests.test_gap_reset) ... ok
+test_id_switch (test_system.EscapeTests.test_id_switch) ... ok
+test_multiple_ready (test_system.EscapeTests.test_multiple_ready) ... ok
+test_reentry_reset (test_system.EscapeTests.test_reentry_reset) ... ok
+test_boundary (test_system.GeometryTests.test_boundary) ... ok
+test_concave (test_system.GeometryTests.test_concave) ... ok
+test_cross_no_corner (test_system.GeometryTests.test_cross_no_corner) ... ok
+test_duplicate (test_system.GeometryTests.test_duplicate) ... ok
+test_encloses (test_system.GeometryTests.test_encloses) ... ok
+test_inside (test_system.GeometryTests.test_inside) ... ok
+test_outside (test_system.GeometryTests.test_outside) ... ok
+test_overlap (test_system.GeometryTests.test_overlap) ... ok
+test_self_cross (test_system.GeometryTests.test_self_cross) ... ok
+test_touch (test_system.GeometryTests.test_touch) ... ok
+test_zero_area (test_system.GeometryTests.test_zero_area) ... ok
+test_analysis (test_system.IntegrationTests.test_analysis) ... ok
+test_missing_image (test_system.IntegrationTests.test_missing_image) ... ok
+test_replay_evidence (test_system.IntegrationTests.test_replay_evidence) ... ok
+test_resize_rejected (test_system.IntegrationTests.test_resize_rejected) ... ok
+test_count_metric (test_system.MetricsTests.test_count_metric) ... ok
+test_empty (test_system.MetricsTests.test_empty) ... ok
+test_one_to_one (test_system.MetricsTests.test_one_to_one) ... ok
+test_wrong_pen (test_system.MetricsTests.test_wrong_pen) ... ok
+test_package_actual_hash (test_system.PackagingTests.test_package_actual_hash) ... ok
+test_package_reject_wrong_hash (test_system.PackagingTests.test_package_reject_wrong_hash) ... ok
+
+----------------------------------------------------------------------
+Ran 45 tests in 0.710s
+
+OK

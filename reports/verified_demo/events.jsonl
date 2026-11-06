@@ -1,0 +1,2 @@
+{"loai": "lac_chuong", "o": "A", "thoi_gian": "2026-11-06T00:00:08+07:00", "muc": "khan_cap", "anh": "reports/verified_demo/evidence/6c5b11a5ee9a4b39b306563fad5c4606.jpg", "du_lieu": {"tracker_ids": [2], "video_seconds": 8, "hold_seconds": 5}}
+{"loai": "dem_thieu", "o": "A", "thoi_gian": "2026-11-06T00:00:15+07:00", "muc": "canh_bao", "anh": "reports/verified_demo/evidence/99518e5a54364ad191acc4e108cfaf0c.jpg", "du_lieu": {"so_dem": 1, "so_dang_ky": 2, "phases": [{"phase": "initial", "estimate": 1, "coverage": 1.0}, {"phase": "recount", "estimate": 1, "coverage": 1.0}]}}

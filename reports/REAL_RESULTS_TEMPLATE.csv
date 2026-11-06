@@ -1,0 +1,5 @@
+experiment,split,precision,recall,mAP50,mAP50_95,hardware,status
+baseline,val,,,,,,NOT_RUN
+final,test,,,,,,NOT_RUN
+final,test_day,,,,,,NOT_RUN
+final,test_night,,,,,,NOT_RUN

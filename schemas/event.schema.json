@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "loai",
+    "o",
+    "thoi_gian",
+    "muc",
+    "anh",
+    "du_lieu"
+  ],
+  "properties": {
+    "loai": {
+      "enum": [
+        "dem_du",
+        "dem_thieu",
+        "lac_chuong"
+      ]
+    },
+    "o": {
+      "type": "string",
+      "minLength": 1
+    },
+    "thoi_gian": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "muc": {
+      "enum": [
+        "thong_tin",
+        "canh_bao",
+        "khan_cap"
+      ]
+    },
+    "anh": {
+      "type": "string",
+      "minLength": 1
+    },
+    "du_lieu": {
+      "type": "object"
+    }
+  }
+}

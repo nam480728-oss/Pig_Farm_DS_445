@@ -1,0 +1,7 @@
+# Edit absolute path. Directory layout images/{train,val,test}, labels/{train,val,test}.
+path: /EDIT/ABSOLUTE/PATH/PigDetectYOLO
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: pig

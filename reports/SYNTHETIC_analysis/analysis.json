@@ -1,0 +1,30 @@
+{
+  "epochs": 3,
+  "best_validation": {
+    "epoch": 3.0,
+    "train/box_loss": 1.6,
+    "train/cls_loss": 1.6,
+    "train/dfl_loss": 1.7,
+    "val/box_loss": 1.8,
+    "val/cls_loss": 1.7,
+    "val/dfl_loss": 1.8,
+    "metrics/precision(B)": 0.4,
+    "metrics/recall(B)": 0.35,
+    "metrics/mAP50(B)": 0.4,
+    "metrics/mAP50-95(B)": 0.25
+  },
+  "last_validation": {
+    "epoch": 3.0,
+    "train/box_loss": 1.6,
+    "train/cls_loss": 1.6,
+    "train/dfl_loss": 1.7,
+    "val/box_loss": 1.8,
+    "val/cls_loss": 1.7,
+    "val/dfl_loss": 1.8,
+    "metrics/precision(B)": 0.4,
+    "metrics/recall(B)": 0.35,
+    "metrics/mAP50(B)": 0.4,
+    "metrics/mAP50-95(B)": 0.25
+  },
+  "note": "Best validation row is descriptive; use actual best.pt for evaluation. No test claims or classification accuracy."
+}

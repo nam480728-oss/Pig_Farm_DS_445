@@ -1,0 +1,12 @@
+requirement,module,verification,status
+GPU setup,scripts/doctor.py,CLI doctor,Implemented_not_GPU_verified
+YOLO11-l training,scripts/train.py,syntax_and_help,Needs_real_data_GPU
+Data validation,scripts/data_tools.py,DatasetTests,Passed_synthetic
+Loss metrics analysis,scripts/analyze.py,test_analysis,Passed_synthetic_CSV
+Final evaluation,scripts/evaluate.py,syntax_and_help,Needs_real_model
+Weight provenance,scripts/package_model.py,PackagingTests,Passed_dummy_bytes_only
+Session count_recount,src/counting.py,CountTests_and_replay,Passed_synthetic
+Escape_5s_300s,src/escape.py,EscapeTests,Passed_synthetic
+Evidence_and_events,src/engine.py,test_replay_evidence,Passed_synthetic
+Real_video,scripts/video.py,syntax_and_help,Not_runtime_verified
+Web_MySQL_integration,TV2_TV3,Future_integration,Out_of_week1_2_scope

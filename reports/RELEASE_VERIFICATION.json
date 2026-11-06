@@ -1,0 +1,17 @@
+{
+  "unit_test_exit_code": 0,
+  "unit_tests": 45,
+  "cli_commands": 13,
+  "cli_failed": [],
+  "python": "3.12.8",
+  "platform": "Linux-6.1.155+-x86_64-with-glibc2.43",
+  "syntax_check": "all .py AST parsed",
+  "real_training": "NOT_RUN",
+  "real_inference": "NOT_RUN",
+  "camera_web_integration": "NOT_RUN",
+  "test_data": "Synthetic frames and CSV only",
+  "extracted_package_tests": "45/45 passed",
+  "zip_crc": "passed",
+  "docx_integrity": "passed",
+  "manifest_sha256": "verified before adding this final log"
+}
