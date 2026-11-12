@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Lỗi {{ ma }}{% endblock %}
+{% block heading %}Không tìm thấy{% endblock %}
+{% block content %}
+<div class="err-page">
+  <h2>{{ ma }}</h2>
+  <p class="muted">{{ thong_diep }}</p>
+  <a class="more" href="/">← Về trang chủ</a>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% set ICON_LOAI = {
+  'nghi_trom': '🚨',
+  'lac_chuong': '🐖',
+  'nghi_chet': '⚠️',
+  'dem_thieu': '📉',
+  'tho_nhanh': '💨',
+  'bo_an': '🍽️',
+  'o_an_kem': '🥣',
+  'nguoi_la': '👤',
+  'dem_du': '✅'
+} %}
+<div class="ev {{ e.muc }}" data-ev="{{ e.id }}">
+  <div class="ev-head">
+    <b><span>{{ ICON_LOAI.get(e.loai, '🔔') }}</span> {{ LOAI[e.loai] }}</b>
+    <span class="chip {{ e.muc }}">{{ MUC[e.muc] }}</span>
+  </div>
+  <div class="ev-meta">Ô {{ e.o }} · {{ e.thoi_gian|gio }}</div>
+  {% if e.anh %}<img class="ev-img" src="/{{ e.anh }}" alt="Ảnh sự kiện {{ LOAI[e.loai] }}" loading="lazy">{% endif %}
+  {% if e.du_lieu %}<div class="ev-data">
+    {% for k, v in e.du_lieu|nhan %}{{ k }}: {{ v }}{{ ' · ' if not loop.last }}{% endfor %}
+  </div>{% endif %}
+  {% if e.trang_thai == 'moi' %}
+  <div class="ev-actions">
+    <button type="button" data-ph="dung" data-id="{{ e.id }}">✔ Đúng</button>
+    <button type="button" data-ph="bao_nham" data-id="{{ e.id }}">✖ Báo nhầm</button>
+  </div>
+  {% else %}
+  <div class="ev-actions done">{{ '✔ Đã xác nhận đúng' if e.trang_thai == 'dung' else '✖ Đã báo nhầm' }}</div>
+  {% endif %}
+</div>

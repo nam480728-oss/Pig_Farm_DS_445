@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Đàn{% endblock %}
+{% block heading %}Theo dõi tăng trưởng đàn{% endblock %}
+{% block content %}
+{% for r in rows %}
+<a class="card link" href="/dan/{{ r.dan }}">
+  <div class="row">
+    <b class="card-title">🐖 Đàn {{ r.dan }}</b>
+    <span class="chip">Ô {{ r.o }} · {{ r.so_con }} con</span>
+  </div>
+  {% if r.co_du_lieu %}
+  <div class="kv">
+    <span>Cân nặng trung bình</span>
+    <b>{{ r.tb_kg }} kg</b>
+  </div>
+  <div class="kv">
+    <span>Tăng so với kỳ trước</span>
+    <b>{% if r.tang_kg is not none %}{{ '%+.1f'|format(r.tang_kg) }} kg ({{ '%+.1f'|format(r.tang_pct) }}%){% else %}—{% endif %}</b>
+  </div>
+  <div class="kv">
+    <span>Độ đồng đều (±10% TB)</span>
+    <b>{{ r.dong_deu_pct }}%</b>
+  </div>
+  <div class="mini-progress" aria-hidden="true">
+    <span style="width: {{ [r.dong_deu_pct, 100]|min }}%"></span>
+  </div>
+  <div class="chips">
+    <span class="chip canh_bao">{{ r.con_coi|length }} con còi</span>
+    <span class="chip thong_tin">{{ r.con_lon_nhanh|length }} lớn nhanh</span>
+  </div>
+  {% else %}
+  <p class="muted">Chưa có lần đo nào.</p>
+  {% endif %}
+</a>
+{% endfor %}
+{% endblock %}

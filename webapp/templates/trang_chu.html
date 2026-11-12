@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Trang chủ{% endblock %}
+{% block heading %}Tổng quan trang trại{% endblock %}
+{% block body_attr %}data-autoreload="1"{% endblock %}
+{% block content %}
+<section class="stats" aria-label="Chỉ số tổng quan">
+  <div class="stat">
+    <div class="stat-top">
+      <span class="stat-icon" aria-hidden="true">🐖</span>
+      <span class="chip ok">{{ o|length }} ô chuồng</span>
+    </div>
+    <b>{{ tong_con }}</b>
+    <span>Tổng số lợn đăng ký</span>
+  </div>
+  <div class="stat {{ 'alert' if khan_cap }}">
+    <div class="stat-top">
+      <span class="stat-icon" aria-hidden="true">{{ '🚨' if khan_cap else '🛡️' }}</span>
+      {% if khan_cap %}<span class="chip khan_cap">Cần xử lý</span>{% else %}<span class="chip ok">An toàn</span>{% endif %}
+    </div>
+    <b>{{ khan_cap }}</b>
+    <span>Khẩn cấp chưa xử lý</span>
+  </div>
+</section>
+
+<div class="sec-head">
+  <h2>Camera ô chuồng</h2>
+  <a href="/o-chuong" class="sec-link">Quản lý →</a>
+</div>
+<div class="cam-list">
+  {% for x in o %}
+  <a class="cam-card {{ 'has-alert' if x.ma in o_khan_cap }}" href="/xem/{{ x.ma }}" aria-label="Xem camera {{ x.ten }}">
+    <div class="cam-thumb">
+      <img src="/camera/{{ x.ma }}.jpg" alt="" loading="lazy" onerror="this.remove()">
+      <span class="live-tag"><i></i>TRỰC TIẾP</span>
+      {% if x.ma in o_khan_cap %}<span class="cam-alert">🚨 Khẩn cấp</span>{% endif %}
+      <span class="cam-play" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></svg>
+      </span>
+    </div>
+    <div class="cam-info">
+      <div>
+        <b>{{ x.ten }}</b>
+        <span>{{ x.so_dang_ky }} con đăng ký{{ (' · ' ~ x.su_kien_moi ~ ' sự kiện mới') if x.su_kien_moi }}</span>
+      </div>
+      <i class="{{ 'dot' if x.ma in o_khan_cap else 'dot-ok' }}"></i>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+<div class="sec-head">
+  <h2>Sự kiện gần đây</h2>
+  <a href="/su-kien" class="sec-link">Tất cả →</a>
+</div>
+{% for e in gan_day %}{% include "_su_kien_item.html" %}{% endfor %}
+<a class="more" href="/su-kien">Xem toàn bộ nhật ký sự kiện →</a>
+{% endblock %}

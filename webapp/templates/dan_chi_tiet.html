@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Đàn {{ bc.dan }}{% endblock %}
+{% block heading %}Đàn {{ bc.dan }} · Ô {{ bc.o }}{% endblock %}
+{% macro con_list(ds) %}
+  {% for x in ds %}
+  <div class="card pig">
+    {% if x.anh %}<img src="/{{ x.anh }}" alt="Con {{ x.con_id }}">{% else %}<div class="no-pic">🐖</div>{% endif %}
+    <div style="flex:1">
+      <div class="row">
+        <b>{{ x.con_id }}</b>
+        <span class="chip">{{ x.kg }} kg</span>
+      </div>
+      <div class="muted" style="margin-top:4px">So với mốc: <b>{{ '%+.1f'|format(x.chenh_moc) }} kg</b></div>
+      <div class="muted">So với TB đàn: <b>{{ '%+.1f'|format(x.chenh_tb) }} kg ({{ '%+.1f'|format(x.chenh_tb_pct) }}%)</b></div>
+    </div>
+  </div>
+  {% else %}<p class="muted center">Không có con nào trong nhóm này.</p>{% endfor %}
+{% endmacro %}
+{% block content %}
+<div class="filters" role="tablist">
+  <a href="?tab=tong_quan" class="{{ 'on' if sub=='tong_quan' }}">📊 Tổng quan</a>
+  <a href="?tab=coi" class="{{ 'on' if sub=='coi' }}">⚠️ Con còi{% if bc.con_coi %} ({{ bc.con_coi|length }}){% endif %}</a>
+  <a href="?tab=lon_nhanh" class="{{ 'on' if sub=='lon_nhanh' }}">🚀 Lớn nhanh{% if bc.con_lon_nhanh %} ({{ bc.con_lon_nhanh|length }}){% endif %}</a>
+</div>
+{% if not bc.co_du_lieu %}
+  <p class="muted center">Đàn này chưa có lần đo cân nặng.</p>
+{% elif sub == 'tong_quan' %}
+  <section class="stats">
+    <div class="stat">
+      <b>{{ bc.tb_kg }} kg</b>
+      <span>TB đàn · {{ bc.so_con_do }}/{{ bc.so_con }} con · {{ bc.tuoi_ngay }} ngày tuổi</span>
+    </div>
+    <div class="stat">
+      <b>{% if bc.tang_kg is not none %}{{ '%+.1f'|format(bc.tang_kg) }} kg{% else %}—{% endif %}</b>
+      <span>{% if bc.tang_pct is not none %}{{ '%+.1f'|format(bc.tang_pct) }}% so với {{ bc.ngay_ky_truoc[5:] }}{% else %}Chưa có kỳ trước{% endif %}</span>
+    </div>
+    <div class="stat">
+      <b>{{ bc.dong_deu_pct }}%</b>
+      <span>Đồng đều (±10% TB) · CV {{ bc.cv_pct }}%</span>
+    </div>
+    <div class="stat {{ 'alert' if bc.tb_chenh_moc < 0 }}">
+      <b>{{ '%+.1f'|format(bc.tb_chenh_moc) }} kg</b>
+      <span>So với mốc {{ bc.moc_kg }} kg</span>
+    </div>
+  </section>
+  <h2>Biểu đồ tăng trưởng TB đàn so với mốc</h2>
+  <div class="card chart">
+    {{ bieu_do|safe }}
+    <p class="hint">Đường liền xanh: TB đàn · Đường nét đứt: Mốc chuẩn ({{ bc.moc_kg }} kg)</p>
+  </div>
+{% elif sub == 'coi' %}
+  <p class="hint" style="margin-bottom:10px">Con còi: thấp hơn TB đàn từ {{ nguong.coi_phan_tram }}% (chỉnh ở Cài đặt).</p>
+  {{ con_list(bc.con_coi) }}
+{% else %}
+  <p class="hint" style="margin-bottom:10px">Con lớn nhanh: cao hơn TB đàn từ {{ nguong.lon_nhanh_phan_tram }}% (chỉnh ở Cài đặt).</p>
+  {{ con_list(bc.con_lon_nhanh) }}
+{% endif %}
+<a class="more" href="/dan">← Quay lại danh sách đàn</a>
+{% endblock %}

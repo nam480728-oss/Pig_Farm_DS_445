@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Cài đặt{% endblock %}
+{% block heading %}Cài đặt & Chế độ AI{% endblock %}
+{% block content %}
+<a class="card link action-card" href="/ve-vung">
+  <div class="action-card-icon" aria-hidden="true">🎯</div>
+  <div class="action-card-body">
+    <b>Vẽ vùng trên ảnh camera</b>
+    <p class="hint">Ô chuồng, máng ăn, vùng lạc chuồng, vật tham chiếu</p>
+  </div>
+  <span class="action-card-arrow" aria-hidden="true">→</span>
+</a>
+
+<a class="card link action-card" href="/chay-video">
+  <div class="action-card-icon" aria-hidden="true">🎬</div>
+  <div class="action-card-body">
+    <b>Chạy video demo</b>
+    <p class="hint">Tải video lên, chạy pipeline AI, xem sự kiện phát sinh</p>
+  </div>
+  <span class="action-card-arrow" aria-hidden="true">→</span>
+</a>
+
+<div class="sec-head">
+  <h2>Chế độ tự động & Lịch hẹn giờ AI</h2>
+</div>
+<p class="hint" style="margin:-4px 0 12px">
+  Bật để AI tự chạy trong khung giờ đã đặt. Khi <b>Tắt</b>, bạn có thể nhấn kiểm tra thủ công từng chức năng ngay dưới màn hình camera.
+</p>
+
+<form id="form-cai-dat">
+{# 1. Đếm lợn #}
+<div class="card auto-card">
+  <div class="row">
+    <b class="card-title">🔢 Đếm số lượng lợn</b>
+    <label class="sw">
+      <input type="checkbox" name="dem_bat" {{ 'checked' if st.tu_dong.dem_lon }}>
+      <span class="sw-track"></span>
+    </label>
+  </div>
+  <p class="hint">Khi tắt tự động: nhấn nút <b>Đếm lợn</b> dưới camera để đếm ngay số lợn hiện có.</p>
+  <div class="auto-times">
+    <label class="kv"><span>Bắt đầu đếm từ</span><input type="time" name="dem_tu" value="{{ st.gio_dem.tu }}"></label>
+    <label class="kv"><span>Đến giờ</span><input type="time" name="dem_den" value="{{ st.gio_dem.den or '07:15' }}"></label>
+  </div>
+</div>
+
+{# 2. Phát hiện người / Canh gác #}
+<div class="card auto-card">
+  <div class="row">
+    <b class="card-title">🛡️ Phát hiện người & Canh gác</b>
+    <label class="sw">
+      <input type="checkbox" name="cg_bat" {{ 'checked' if st.gio_canh_gac.bat }}>
+      <span class="sw-track"></span>
+    </label>
+  </div>
+  <p class="hint">Tự động báo động khi phát hiện người lạ trong khung giờ canh gác. Khi tắt: bấm <b>Phát hiện người</b> dưới camera để quét thủ công.</p>
+  <div class="auto-times">
+    <label class="kv"><span>Từ giờ</span><input type="time" name="cg_tu" value="{{ st.gio_canh_gac.tu }}"></label>
+    <label class="kv"><span>Đến giờ</span><input type="time" name="cg_den" value="{{ st.gio_canh_gac.den }}"></label>
+  </div>
+</div>
+
+{# 3. Kiểm tra độ phát triển #}
+<div class="card auto-card">
+  <div class="row">
+    <b class="card-title">📈 Kiểm tra độ phát triển</b>
+    <label class="sw">
+      <input type="checkbox" name="pt_bat" {{ 'checked' if st.tu_dong.phat_trien }}>
+      <span class="sw-track"></span>
+    </label>
+  </div>
+  <p class="hint">Tự động ước lượng cân nặng, độ đồng đều và lọc con còi / lớn nhanh. Khi tắt: bấm <b>Độ phát triển</b> dưới camera để xem kết quả ngay.</p>
+  <div class="auto-times">
+    <label class="kv"><span>Đo tự động từ</span><input type="time" name="pt_tu" value="{{ st.tu_dong.phat_trien_tu }}"></label>
+    <label class="kv"><span>Đến giờ</span><input type="time" name="pt_den" value="{{ st.tu_dong.phat_trien_den }}"></label>
+  </div>
+</div>
+
+{# 4. Theo dõi ăn uống #}
+<div class="card auto-card">
+  <div class="row">
+    <b class="card-title">🍽️ Theo dõi ăn uống</b>
+    <label class="sw">
+      <input type="checkbox" name="an_bat" {{ 'checked' if st.tu_dong.an_uong }}>
+      <span class="sw-track"></span>
+    </label>
+  </div>
+  <p class="hint">Kiểm tra tỉ lệ đàn vào máng và phát hiện lợn bỏ ăn vào các khung giờ cho ăn.</p>
+  <div class="auto-times">
+    <label class="kv"><span>Các bữa ăn (HH:MM)</span>
+      <input type="text" name="cho_an" value="{{ st.gio_cho_an|join(', ') }}"></label>
+    <label class="kv"><span>Thời lượng theo dõi (phút)</span>
+      <input type="number" name="phut_an" min="5" max="180" value="{{ st.tu_dong.phut_an }}"></label>
+  </div>
+</div>
+
+{# 5. Phát hiện sổng chuồng #}
+<div class="card auto-card">
+  <div class="row">
+    <b class="card-title">🐖 Phát hiện sổng chuồng</b>
+    <label class="sw">
+      <input type="checkbox" name="lc_bat" {{ 'checked' if st.tu_dong.lac_chuong }}>
+      <span class="sw-track"></span>
+    </label>
+  </div>
+  <p class="hint">Giám sát vùng chuồng & vạch giới hạn. Khi tắt: nhấn <b>Sổng chuồng</b> dưới camera để kiểm tra.</p>
+  <div class="auto-times">
+    <label class="kv"><span>Từ giờ</span><input type="time" name="lc_tu" value="{{ st.tu_dong.lac_chuong_tu }}"></label>
+    <label class="kv"><span>Đến giờ</span><input type="time" name="lc_den" value="{{ st.tu_dong.lac_chuong_den }}"></label>
+  </div>
+</div>
+
+{# 6. Theo dõi sức khỏe & nhịp thở #}
+<div class="card auto-card">
+  <div class="row">
+    <b class="card-title">💓 Sức khỏe & Nhịp thở</b>
+    <label class="sw">
+      <input type="checkbox" name="sk_bat" {{ 'checked' if st.tu_dong.suc_khoe }}>
+      <span class="sw-track"></span>
+    </label>
+  </div>
+  <p class="hint">Đo nhịp thở và phát hiện lợn nằm bất động lâu. Khi tắt: nhấn <b>Sức khỏe</b> dưới camera để đo ngay.</p>
+  <div class="auto-times">
+    <label class="kv"><span>Từ giờ</span><input type="time" name="sk_tu" value="{{ st.tu_dong.suc_khoe_tu }}"></label>
+    <label class="kv"><span>Đến giờ</span><input type="time" name="sk_den" value="{{ st.tu_dong.suc_khoe_den }}"></label>
+  </div>
+</div>
+
+<h2>Ngưỡng phát hiện AI</h2>
+<div class="card">
+  <b class="card-title">⚙️ Thông số ngưỡng cảnh báo</b>
+  {% set ten = {
+    'lac_chuong_giay': 'Sổng chuồng: ngoài liên tục (giây)',
+    'lac_chuong_bao_lai_phut': 'Sổng chuồng: báo lại sau (phút)',
+    'nguoi_khung_lien_tiep': 'Người lạ: số khung liên tiếp',
+    'dem_giu_giay': 'Đếm: giữ mức cao nhất (giây)',
+    'tho_nhanh_nhip_phut': 'Thở nhanh: nhịp/phút',
+    'coi_phan_tram': 'Con còi: thấp hơn TB đàn (%)',
+    'lon_nhanh_phan_tram': 'Con lớn nhanh: cao hơn TB đàn (%)' } %}
+  {% for k, v in st.nguong.items() %}
+  <label class="kv"><span>{{ ten.get(k, k) }}</span>
+    <input type="number" step="any" min="0" name="{{ k }}" data-nguong value="{{ v }}"></label>
+  {% endfor %}
+</div>
+<button class="primary" type="submit">💾 Lưu cài đặt hệ thống</button>
+<p id="kq" class="kq" role="status" aria-live="polite"></p>
+</form>
+{% endblock %}

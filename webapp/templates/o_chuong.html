@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Ô chuồng{% endblock %}
+{% block heading %}Quản lý ô chuồng{% endblock %}
+{% block body_attr %}data-autoreload="1"{% endblock %}
+{% block content %}
+{% for r in rows %}
+<div class="card">
+  <div class="row">
+    <div class="card-title">
+      <span>🏠 {{ r.ten }}</span>
+    </div>
+    {% if r.su_kien_moi %}
+      <span class="chip canh_bao">{{ r.su_kien_moi }} sự kiện mới</span>
+    {% else %}
+      <span class="chip ok">Ổn định</span>
+    {% endif %}
+  </div>
+  <div class="kv">
+    <span>Số lượng đăng ký</span>
+    <b>{{ r.so_dang_ky }} con</b>
+  </div>
+  <div class="kv">
+    <span>AI đếm gần nhất</span>
+    <b>{{ (r.dem_gan_nhat|string ~ ' con') if r.dem_gan_nhat is not none else '—' }}</b>
+  </div>
+  <div class="kv">
+    <span>Cấu hình vùng camera</span>
+    <b>
+      {% if r.vung_json %}
+        <span class="chip ok">Đã vẽ vùng</span>
+      {% else %}
+        <span class="chip canh_bao">Chưa vẽ</span>
+      {% endif %}
+    </b>
+  </div>
+  <a class="more" href="/xem/{{ r.ma }}">📹 Xem camera →</a>
+  <a class="more" href="/ve-vung/{{ r.ma }}">🎯 Vẽ vùng trên camera →</a>
+</div>
+{% endfor %}
+{% endblock %}

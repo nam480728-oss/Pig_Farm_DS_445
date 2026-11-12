@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Vẽ vùng{% endblock %}
+{% block heading %}Vẽ vùng camera{% endblock %}
+{% block content %}
+<p class="muted" style="margin-bottom:12px">Chọn ô để vẽ ô chuồng, máng ăn, vùng lạc chuồng và vật tham chiếu trên ảnh camera.</p>
+{% for r in o %}
+<a class="card link action-card" href="/ve-vung/{{ r.ma }}">
+  <div class="action-card-icon" aria-hidden="true">📷</div>
+  <div class="action-card-body">
+    <b>{{ r.ten }}</b>
+    <p class="hint">Thiết lập tọa độ đa giác tỉ lệ 0–1 cho AI</p>
+  </div>
+  <span class="chip {{ 'ok' if r.vung_json else 'canh_bao' }}">
+    {{ 'Đã vẽ' if r.vung_json else 'Chưa vẽ' }}
+  </span>
+</a>
+{% endfor %}
+<a class="more" href="/cai-dat">← Về cài đặt</a>
+{% endblock %}

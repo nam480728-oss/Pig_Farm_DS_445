@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Sự kiện{% endblock %}
+{% block heading %}Nhật ký sự kiện AI{% endblock %}
+{% block body_attr %}data-autoreload="1"{% endblock %}
+{% block content %}
+<div class="filters" aria-label="Lọc theo mức độ">
+  <a href="/su-kien{{ '?o=' ~ o_sel if o_sel else '' }}" class="{{ 'on' if not muc }}">Tất cả</a>
+  {% for k, v in MUC.items() %}
+  <a href="/su-kien?muc={{ k }}{{ '&o=' ~ o_sel if o_sel else '' }}" class="{{ 'on' if muc==k }}">{{ v }}</a>
+  {% endfor %}
+</div>
+{% if o_list %}
+<div class="filters sub-filters" aria-label="Lọc theo ô chuồng">
+  <a href="/su-kien{{ '?muc=' ~ muc if muc else '' }}" class="{{ 'on' if not o_sel }}">Mọi ô</a>
+  {% for ma_o in o_list %}
+  <a href="/su-kien?o={{ ma_o }}{{ '&muc=' ~ muc if muc else '' }}" class="{{ 'on' if o_sel==ma_o }}">Ô {{ ma_o }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+{% for e in rows %}{% include "_su_kien_item.html" %}
+{% else %}<p class="muted center">Chưa có sự kiện nào phù hợp bộ lọc.</p>{% endfor %}
+{% endblock %}

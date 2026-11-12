@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% set ICON_LOAI = {'nghi_trom': '🚨', 'lac_chuong': '🐖', 'nghi_chet': '⚠️', 'dem_thieu': '📉', 'tho_nhanh': '💨',
+                    'bo_an': '🍽️', 'o_an_kem': '🥣', 'nguoi_la': '👤', 'dem_du': '✅'} %}
+{% block title %}Camera {{ o.ten }}{% endblock %}
+{% block heading %}{{ o.ten }}{% endblock %}
+{% block screen_class %}flush{% endblock %}
+{% block back %}
+<a href="/" class="icon-btn" aria-label="Quay lại danh sách camera">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+</a>
+{% endblock %}
+{% block content %}
+
+{# ---------- Khung camera ---------- #}
+<section class="player" id="player" aria-label="Camera {{ o.ten }}">
+  {% if co_anh %}
+    <img id="cam-img" src="/camera/{{ o.ma }}.jpg" data-orig="/camera/{{ o.ma }}.jpg" alt="Hình camera {{ o.ten }}">
+  {% else %}
+    <div class="player-empty">📷<span>Chưa có hình camera</span></div>
+  {% endif %}
+
+  <svg class="zones" id="zones" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    {% if vung.o %}<polygon class="z-o" points="{% for p in vung.o %}{{ p[0]*100 }},{{ p[1]*100 }} {% endfor %}"/>{% endif %}
+    {% for m in vung.mang_an or [] %}<polygon class="z-mang" points="{% for p in m %}{{ p[0]*100 }},{{ p[1]*100 }} {% endfor %}"/>{% endfor %}
+    {% if vung.lac_chuong %}
+      {% if vung.lac_chuong.kieu == 'vung' %}
+        <polygon class="z-lac" points="{% for p in vung.lac_chuong.diem %}{{ p[0]*100 }},{{ p[1]*100 }} {% endfor %}"/>
+      {% else %}
+        {% set d = vung.lac_chuong.diem %}<line class="z-lac" x1="{{ d[0][0]*100 }}" y1="{{ d[0][1]*100 }}" x2="{{ d[1][0]*100 }}" y2="{{ d[1][1]*100 }}"/>
+      {% endif %}
+    {% endif %}
+    {% if vung.vat_tham_chieu %}
+      {% set d = vung.vat_tham_chieu.diem %}<line class="z-vt" x1="{{ d[0][0]*100 }}" y1="{{ d[0][1]*100 }}" x2="{{ d[1][0]*100 }}" y2="{{ d[1][1]*100 }}"/>
+    {% endif %}
+  </svg>
+
+  <div class="ov ov-tl">
+    <span class="live-tag" id="live-tag"><i></i>TRỰC TIẾP</span>
+    <span class="ov-pill" id="live-count-pill">🐖 AI đếm: {{ dem if dem is not none else '—' }}/{{ o.so_dang_ky }}</span>
+  </div>
+  <div class="ov ov-tr"><span class="ov-pill" id="cam-clock">--:--:--</span></div>
+  <div class="ov ov-paused" id="paused" hidden>⏸ Đã tạm dừng</div>
+  <div class="ov ov-scan" id="ai-scan" hidden>
+    <div class="scan-line"></div>
+    <span id="ai-scan-text">🔍 AI đang phân tích khung hình…</span>
+  </div>
+
+  <div class="ov ov-bar">
+    <button type="button" class="ov-btn" id="btn-pause" aria-label="Tạm dừng" title="Tạm dừng / Tiếp tục">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+    </button>
+    <span class="ov-name" id="ov-name">{{ o.ten }}</span>
+    <button type="button" class="ov-btn" id="btn-reset-img" hidden title="Trở về hình trực tiếp">↺ Hình gốc</button>
+    <button type="button" class="ov-btn" id="btn-fs" aria-label="Toàn màn hình" title="Toàn màn hình">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+  </div>
+</section>
+
+{# ---------- Chọn camera khác ---------- #}
+<nav class="cam-switch" aria-label="Chọn camera">
+  {% for x in ds_o %}
+  <a href="/xem/{{ x.ma }}" class="{{ 'on' if x.ma == o.ma }}" {{ 'aria-current=page' if x.ma == o.ma }}>
+    📹 Ô {{ x.ma }}{% if x.khan_cap %}<i class="dot" title="Có sự kiện khẩn cấp"></i>{% endif %}
+  </a>
+  {% endfor %}
+</nav>
+
+<div class="pad">
+  {# ---------- Nút điều khiển nhanh ---------- #}
+  <div class="ctrl-row" role="toolbar" aria-label="Điều khiển camera">
+    <a class="ctrl" id="btn-snap" href="/camera/{{ o.ma }}.jpg" download="camera_{{ o.ma }}.jpg" {{ 'aria-disabled=true' if not co_anh }}>
+      <span class="ctrl-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></svg></span>
+      Chụp ảnh
+    </a>
+    <button type="button" class="ctrl on" id="btn-zone" aria-pressed="true">
+      <span class="ctrl-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg></span>
+      Vùng AI
+    </button>
+    <label class="ctrl" for="file-cam">
+      <span class="ctrl-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg></span>
+      Cập nhật hình
+    </label>
+    <input type="file" id="file-cam" accept="image/*,video/*" hidden>
+    <button type="button" class="ctrl" id="btn-fs2">
+      <span class="ctrl-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></span>
+      Toàn màn hình
+    </button>
+  </div>
+  <p id="kq" class="kq" role="status" aria-live="polite"></p>
+
+  {# ---------- Thông số ---------- #}
+  <section class="cam-stats" id="cam-stats" aria-label="Thông số ô">
+    <div><b>{{ o.so_dang_ky }}</b><span>Đăng ký</span></div>
+    <div><b id="stat-dem">{{ dem if dem is not none else '—' }}</b><span>AI đếm</span></div>
+    <div class="{{ 'warn' if su_kien_moi }}"><b id="stat-sk">{{ su_kien_moi }}</b><span>Sự kiện mới</span></div>
+  </section>
+
+  {# ---------- Bảng Kết quả Kiểm tra AI (hiện ngay khi bấm chức năng) ---------- #}
+  <section id="ai-result" class="ai-result" hidden aria-live="polite"></section>
+
+  {# ---------- Chức năng AI: Tự động theo giờ hoặc Nhấn kiểm tra thủ công ---------- #}
+  <div class="sec-head">
+    <h2>Chức năng AI trên camera</h2>
+    <a href="/cai-dat" class="sec-link">Hẹn giờ →</a>
+  </div>
+  <p class="hint" style="margin:-6px 0 10px">
+    Gạt công tắc để bật/tắt <b>Tự động</b>. Khi tắt (hoặc bất cứ lúc nào), nhấn nút trên thẻ để AI kiểm tra ngay.
+  </p>
+
+  {% set td = st.tu_dong %}
+  <div class="ai-grid" id="ai-grid">
+    {# 1. Đếm lợn #}
+    <div class="ai-card {{ 'is-auto' if td.dem_lon else 'is-manual' }}" data-card="dem_lon"
+         data-lich="{{ st.gio_dem.tu }}–{{ st.gio_dem.den or '07:15' }}">
+      <div class="ai-card-top">
+        <span class="feat-ic c-green">🔢</span>
+        <label class="sw sw-sm" title="Bật/Tắt tự động đếm lợn">
+          <input type="checkbox" data-toggle-auto="dem_lon" {{ 'checked' if td.dem_lon }}>
+          <span class="sw-track"></span>
+        </label>
+      </div>
+      <b class="ai-card-title">Đếm số lợn</b>
+      <span class="ai-mode-badge" data-badge>
+        {{ ('Tự động ' ~ st.gio_dem.tu ~ '–' ~ (st.gio_dem.den or '07:15')) if td.dem_lon else 'Thủ công · Đã tắt tự động' }}
+      </span>
+      <button type="button" class="ai-run-btn" data-run="dem_lon">
+        ▶ Đếm lợn ngay
+      </button>
+    </div>
+
+    {# 2. Kiểm tra độ phát triển #}
+    <div class="ai-card {{ 'is-auto' if td.phat_trien else 'is-manual' }}" data-card="phat_trien"
+         data-lich="{{ td.phat_trien_tu }}–{{ td.phat_trien_den }}">
+      <div class="ai-card-top">
+        <span class="feat-ic c-amber">📈</span>
+        <label class="sw sw-sm" title="Bật/Tắt tự động đo phát triển">
+          <input type="checkbox" data-toggle-auto="phat_trien" {{ 'checked' if td.phat_trien }}>
+          <span class="sw-track"></span>
+        </label>
+      </div>
+      <b class="ai-card-title">Độ phát triển</b>
+      <span class="ai-mode-badge" data-badge>
+        {{ ('Tự động ' ~ td.phat_trien_tu ~ '–' ~ td.phat_trien_den) if td.phat_trien else 'Thủ công · Đã tắt tự động' }}
+      </span>
+      <button type="button" class="ai-run-btn" data-run="phat_trien">
+        ▶ Kiểm tra phát triển
+      </button>
+    </div>
+
+    {# 3. Phát hiện người / Canh gác #}
+    <div class="ai-card {{ 'is-auto' if st.gio_canh_gac.bat else 'is-manual' }}" data-card="canh_gac"
+         data-lich="{{ st.gio_canh_gac.tu }}–{{ st.gio_canh_gac.den }}">
+      <div class="ai-card-top">
+        <span class="feat-ic c-indigo">🛡️</span>
+        <label class="sw sw-sm" title="Bật/Tắt tự động phát hiện người">
+          <input type="checkbox" data-toggle-auto="canh_gac" {{ 'checked' if st.gio_canh_gac.bat }}>
+          <span class="sw-track"></span>
+        </label>
+      </div>
+      <b class="ai-card-title">Phát hiện người</b>
+      <span class="ai-mode-badge" data-badge>
+        {{ ('Tự động ' ~ st.gio_canh_gac.tu ~ '–' ~ st.gio_canh_gac.den) if st.gio_canh_gac.bat else 'Thủ công · Đã tắt tự động' }}
+      </span>
+      <button type="button" class="ai-run-btn" data-run="phat_hien_nguoi">
+        ▶ Quét người lạ ngay
+      </button>
+    </div>
+
+    {# 4. Kiểm tra ăn uống #}
+    <div class="ai-card {{ 'is-auto' if td.an_uong else 'is-manual' }}" data-card="an_uong"
+         data-lich="{{ st.gio_cho_an|join(', ') }}">
+      <div class="ai-card-top">
+        <span class="feat-ic c-blue">🍽️</span>
+        <label class="sw sw-sm" title="Bật/Tắt tự động theo dõi ăn uống">
+          <input type="checkbox" data-toggle-auto="an_uong" {{ 'checked' if td.an_uong }}>
+          <span class="sw-track"></span>
+        </label>
+      </div>
+      <b class="ai-card-title">Theo dõi ăn uống</b>
+      <span class="ai-mode-badge" data-badge>
+        {{ ('Tự động: ' ~ (st.gio_cho_an|join(', '))) if td.an_uong else 'Thủ công · Đã tắt tự động' }}
+      </span>
+      <button type="button" class="ai-run-btn" data-run="an_uong">
+        ▶ Kiểm tra ăn uống
+      </button>
+    </div>
+
+    {# 5. Phát hiện sổng chuồng #}
+    <div class="ai-card {{ 'is-auto' if td.lac_chuong else 'is-manual' }}" data-card="lac_chuong"
+         data-lich="{{ td.lac_chuong_tu }}–{{ td.lac_chuong_den }}">
+      <div class="ai-card-top">
+        <span class="feat-ic c-red">🐖</span>
+        <label class="sw sw-sm" title="Bật/Tắt tự động báo sổng chuồng">
+          <input type="checkbox" data-toggle-auto="lac_chuong" {{ 'checked' if td.lac_chuong }}>
+          <span class="sw-track"></span>
+        </label>
+      </div>
+      <b class="ai-card-title">Sổng chuồng</b>
+      <span class="ai-mode-badge" data-badge>
+        {{ ('Tự động ' ~ td.lac_chuong_tu ~ '–' ~ td.lac_chuong_den) if td.lac_chuong else 'Thủ công · Đã tắt tự động' }}
+      </span>
+      <button type="button" class="ai-run-btn" data-run="lac_chuong">
+        ▶ Kiểm tra sổng chuồng
+      </button>
+    </div>
+
+    {# 6. Sức khỏe & Nhịp thở #}
+    <div class="ai-card {{ 'is-auto' if td.suc_khoe else 'is-manual' }}" data-card="suc_khoe"
+         data-lich="{{ td.suc_khoe_tu }}–{{ td.suc_khoe_den }}">
+      <div class="ai-card-top">
+        <span class="feat-ic c-gray">💓</span>
+        <label class="sw sw-sm" title="Bật/Tắt tự động đo nhịp thở">
+          <input type="checkbox" data-toggle-auto="suc_khoe" {{ 'checked' if td.suc_khoe }}>
+          <span class="sw-track"></span>
+        </label>
+      </div>
+      <b class="ai-card-title">Sức khỏe & Nhịp thở</b>
+      <span class="ai-mode-badge" data-badge>
+        {{ ('Tự động ' ~ td.suc_khoe_tu ~ '–' ~ td.suc_khoe_den) if td.suc_khoe else 'Thủ công · Đã tắt tự động' }}
+      </span>
+      <button type="button" class="ai-run-btn" data-run="suc_khoe">
+        ▶ Kiểm tra sức khỏe
+      </button>
+    </div>
+  </div>
+
+  {# ---------- Công cụ mở rộng ---------- #}
+  <h2>Công cụ & Quản lý</h2>
+  <div class="feat-grid">
+    <a href="/ve-vung/{{ o.ma }}" class="feat"><span class="feat-ic c-green">🎯</span>Vẽ vùng AI</a>
+    <a href="{{ '/dan/' ~ dan_o if dan_o else '/dan' }}" class="feat"><span class="feat-ic c-amber">📊</span>Báo cáo đàn</a>
+    <a href="/chay-video" class="feat"><span class="feat-ic c-blue">🎬</span>Phân tích video</a>
+  </div>
+
+  {# ---------- Tin nhắn / sự kiện của camera ---------- #}
+  <div class="sec-head">
+    <h2>Tin nhắn camera</h2>
+    <a href="/su-kien?o={{ o.ma }}" class="sec-link">Tất cả →</a>
+  </div>
+  <div id="msgs">
+    {% for e in tin %}
+    <div class="msg {{ e.muc }}" data-ev="{{ e.id }}">
+      <span class="msg-ic" aria-hidden="true">{{ ICON_LOAI.get(e.loai, '🔔') }}</span>
+      <div class="msg-body">
+        <b>{{ LOAI[e.loai] }}</b>
+        <span>{{ e.thoi_gian|gio }} · {{ MUC[e.muc] }}{{ ' · Mới' if e.trang_thai == 'moi' }}</span>
+      </div>
+      {% if e.anh %}<img class="ev-img msg-img" src="/{{ e.anh }}" alt="Ảnh {{ LOAI[e.loai] }}" loading="lazy">{% endif %}
+    </div>
+    {% else %}
+    <p class="muted center">Chưa có tin nhắn nào từ camera này.</p>
+    {% endfor %}
+  </div>
+</div>
+<script>window.MA_O = {{ o.ma|tojson }}; window.SO_DK = {{ o.so_dang_ky|tojson }};</script>
+<script src="{{ url_for('static', filename='js/xem_camera.js') }}"></script>
+{% endblock %}

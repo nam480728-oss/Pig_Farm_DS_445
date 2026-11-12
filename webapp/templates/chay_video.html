@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Chạy video{% endblock %}
+{% block heading %}Chạy video qua Pipeline AI{% endblock %}
+{% block content %}
+{% if che_do == 'mock' %}
+<div class="card note">
+  <b>⚡ Chế độ giả lập (MOCK)</b>
+  <p class="hint">Chưa tìm thấy <code>ai/pipeline.py</code> của Nam, nên hệ thống phát sự kiện mẫu để thử giao diện.
+  Đặt tên file chứa <code>dem</code>, <code>nguoi</code>, <code>lac</code>, <code>ngu</code>, <code>an</code> để kích hoạt sự kiện tương ứng.</p>
+</div>
+{% endif %}
+<form id="form-video" class="card">
+  <b class="card-title" style="margin-bottom:6px">🎬 Tải lên video kiểm thử</b>
+  <label class="kv"><span>Ô chuồng áp dụng</span>
+    <select name="o">{% for r in o %}<option value="{{ r.ma }}">{{ r.ten }}</option>{% endfor %}</select>
+  </label>
+  <label class="kv"><span>File video (≤ 500MB)</span>
+    <input type="file" name="video" accept="video/*" required style="max-width:58%">
+  </label>
+  <button class="primary" type="submit" style="margin-top:12px">▶ Tải lên và chạy phân tích</button>
+</form>
+<div id="tien-do" class="card" hidden>
+  <div class="bar"><div id="bar-in"></div></div>
+  <p id="tt" class="hint center" style="margin-top:8px;font-weight:600"></p>
+</div>
+<div id="kq-su-kien"></div>
+<a class="more" href="/cai-dat">← Về cài đặt</a>
+<script src="{{ url_for('static', filename='js/chay_video.js') }}"></script>
+{% endblock %}
