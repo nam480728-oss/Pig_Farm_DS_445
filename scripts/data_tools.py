@@ -14,7 +14,7 @@ def audit(config,out):
     for split in ('train','val','test'):
         folder=root/cfg[split]
         if not folder.is_dir(): errors.append(f'Missing image directory: {folder}')
-        images=sorted(p for p in folder.rglob('*') if p.suffix.lower() in ('.jpg','.png','.jpeg','.bmp'))
+        images=sorted(p for p in folder.rglob('*') if p.is_file() and p.suffix.lower() in ('.jpg','.png','.jpeg','.bmp')) if folder.is_dir() else []
         nboxes=0; negative=0
         expected=set()
         for p in images:

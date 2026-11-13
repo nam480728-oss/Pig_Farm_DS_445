@@ -42,8 +42,8 @@ Class 0=pig; một txt cùng đường dẫn tương đối cho mỗi ảnh. Gi�
 ```bash
 python -m scripts.data_tools audit --data config/data.yaml --out reports/data
 python -m scripts.data_tools visualize --data config/data.yaml --out reports/labels
-python -m scripts.train --config config/train.yaml --smoke --device 0 --batch 2
-python -m scripts.train --config config/train.yaml --device 0 --batch 8
+python -m scripts.train --config config/train.yaml --smoke --device mps --batch 2
+python -m scripts.train --config config/train.yaml --device mps --batch 8
 ```
 Smoke: 1 epoch trên dữ liệu thật; không thay cho baseline 100 epochs. Audit không tự sửa nhãn.
 Ảnh âm phải có txt rỗng đã xác nhận. Audit phát hiện trùng nội dung, không chứng minh hết
@@ -53,12 +53,12 @@ bitwise giống nhau giữa mọi phiên bản/phần cứng.
 
 ## 4. Tuần 2 — phân tích, chọn và đánh giá cuối
 ```bash
-python -m scripts.train --resume runs/detect/pig_det_baseline/weights/last.pt
-python -m scripts.evaluate --weights runs/detect/pig_det_baseline/weights/best.pt --split val --device 0
-python -m scripts.analyze --csv runs/detect/pig_det_baseline/results.csv --out reports/training
+python -m scripts.train --resume runs/detect/pig_set_baseline/weights/last.pt
+python -m scripts.evaluate --weights runs/detect/pig_set_baseline/weights/best.pt --split val --device mps
+python -m scripts.analyze --csv runs/detect/pig_set_baseline/results.csv --out reports/training
 # Chốt cấu hình bằng validation trước khi chạy test:
-python -m scripts.evaluate --weights runs/detect/pig_det_baseline/weights/best.pt --split test --device 0
-python -m scripts.package_model --weights runs/detect/pig_det_baseline/weights/best.pt --metrics runs/evaluation/test/metrics.json --out models/handover
+python -m scripts.evaluate --weights runs/detect/pig_set_baseline/weights/best.pt --split test --device mps
+python -m scripts.package_model --weights runs/detect/pig_set_baseline/weights/best.pt --metrics runs/evaluation/test/metrics.json --out models/handover
 ```
 Resume lấy cấu hình từ checkpoint; không dùng để thay đổi tùy tiện thí nghiệm cũ.
 Ultralytics có thể tăng hậu tố đường dẫn khi output tồn tại; phải dùng đường dẫn thật.
@@ -73,8 +73,8 @@ Tạo CSV metadata có cột image,lighting; image tương đối với data roo
 Phải phủ đúng toàn bộ test, không trùng, không tự đoán nhãn đêm bằng độ sáng.
 ```bash
 python -m scripts.subsets --data config/data.yaml --metadata path/to/test_metadata.csv --out reports/subsets
-python -m scripts.evaluate --weights models/handover/pig_det.pt --data reports/subsets/day.yaml --split test --out runs/evaluation_day --device 0
-python -m scripts.evaluate --weights models/handover/pig_det.pt --data reports/subsets/night.yaml --split test --out runs/evaluation_night --device 0
+python -m scripts.evaluate --weights models/handover/pig_set.pt --data reports/subsets/day.yaml --split test --out runs/evaluation_day --device mps
+python -m scripts.evaluate --weights models/handover/pig_set.pt --data reports/subsets/night.yaml --split test --out runs/evaluation_night --device mps
 ```
 Đây là phân tích phân nhóm sau khi chốt model, không dùng để tối ưu trên test.
 Ultralytics val xuất đồ thị/ảnh minh họa; review thủ công ảnh bỏ sót/dư và ghi trong
@@ -82,7 +82,7 @@ Ultralytics val xuất đồ thị/ảnh minh họa; review thủ công ảnh b�
 
 ## 6. Video thật — chuẩn bị tuần 3
 ```bash
-python -m scripts.video --weights models/handover/pig_det.pt --source path/to/demo.mp4 --config config/pen.json --out runs/video_new --device cpu --start-time 2026-11-06T08:00:00+07:00
+python -m scripts.video --weights models/handover/pig_set.pt --source path/to/demo.mp4 --config config/pen.json --out runs/video_new --device cpu --start-time 2026-11-06T08:00:00+07:00
 ```
 Sửa polygon, size, registered theo video; từ chối kích thước sai. Timestamp dùng index/fps
 (giả định video CFR). Video VFR/camera trực tiếp phải dùng adapter timestamp thật của TV2.
@@ -119,7 +119,7 @@ Trường hợp không có mẫu/positive, metric null thay vì khẳng định 
 Xem reports/TEST_RESULTS.txt, CLI_TEST_RESULTS.json, RELEASE_VERIFICATION.json.
 Đã chạy core unit/integration, replay JSONL, tạo ảnh bằng chứng và phân tích CSV giả lập.
 Chưa train PigDetect, chưa chạy YOLO inference thật/CUDA/MPS/camera/WebDB.
-Không kèm dữ liệu gốc, pig_det.pt giả hoặc số liệu AP. Dependencies ML chỉ import khi dùng.
+Không kèm dữ liệu gốc, pig_set.pt giả hoặc số liệu AP. Dependencies ML chỉ import khi dùng.
 Kiểm thử trên Python thực tế ghi trong report; chưa chạy trực tiếp trên máy Mac của bạn.
 
 ## 10. Tài liệu và nguồn
@@ -128,3 +128,6 @@ Kiểm thử trên Python thực tế ghi trong report; chưa chạy trực ti�
 `docs/INTEGRATION.md`: hợp đồng TV2/TV3. `notebooks/Training_Workflow.ipynb`: lệnh train.
 Nguồn chính là hai file DOCX do người dùng cung cấp, ưu tiên bản phân công cập nhật.
 Không sao chép notebook outputs giả thành kết quả thật. Không tải checkpoint không tin cậy.
+
+## Mac M5 / dataset-ready v3
+Read [OPTIMIZATION_M5_V3.md](OPTIMIZATION_M5_V3.md) first. Run `python -m scripts.preflight` before training to validate the actual YOLO dataset and runtime.

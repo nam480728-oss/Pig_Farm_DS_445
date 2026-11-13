@@ -2,7 +2,7 @@ import argparse,json,hashlib
 from pathlib import Path
 
 def main():
-    p=argparse.ArgumentParser(); p.add_argument('--weights',required=True); p.add_argument('--data',default='config/data.yaml'); p.add_argument('--split',choices=['val','test'],default='val'); p.add_argument('--device',default='0'); p.add_argument('--imgsz',type=int,default=960); p.add_argument('--out',default='runs/evaluation'); a=p.parse_args()
+    p=argparse.ArgumentParser(); p.add_argument('--weights',required=True); p.add_argument('--data',default='config/data.yaml'); p.add_argument('--split',choices=['val','test'],default='val'); p.add_argument('--device',default='mps'); p.add_argument('--imgsz',type=int,default=960); p.add_argument('--out',default='runs/evaluation'); a=p.parse_args()
     from ultralytics import YOLO
     w=Path(a.weights)
     if not w.is_file(): raise FileNotFoundError('Use your actual trained checkpoint')

@@ -1,5 +1,5 @@
-# Edit absolute path. Directory layout images/{train,val,test}, labels/{train,val,test}.
-path: /EDIT/ABSOLUTE/PATH/PigDetectYOLO
+# Auto-configured dataset location. Original data are never modified.
+path: /Users/yuanliuu/Documents/ĐỒ ÁN CHUYÊN NGHÀNH/pig_det
 train: images/train
 val: images/val
 test: images/test

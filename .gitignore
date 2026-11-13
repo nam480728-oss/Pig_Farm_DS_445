@@ -4,3 +4,25 @@ __pycache__/
 data/
 runs/
 *.pt
+
+# Python environment
+.venv/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+
+# YOLO datasets and weights
+pig_det/
+datasets/
+data/
+*.pt
+*.pth
+
+# Training outputs
+runs/
+wandb/
+
+# Generated preflight reports
+reports/preflight/
