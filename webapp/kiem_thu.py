@@ -28,7 +28,7 @@ def kiem(ten, dieu_kien, chi_tiet=""):
 
 
 print("1. Các trang")
-for p in ["/", "/o-chuong", "/dan", "/dan/D01", "/dan/D01?tab=coi", "/su-kien", "/cai-dat", "/ve-vung", "/ve-vung/A", "/chay-video"]:
+for p in ["/", "/o-chuong", "/dan", "/dan/D01", "/dan/D01?tab=coi", "/dan/D01?tab=binh_thuong", "/su-kien", "/cai-dat", "/ve-vung", "/ve-vung/A", "/chay-video"]:
     kiem(f"GET {p}", c.get(p).status_code == 200)
 
 print("2. Gửi đủ các loại sự kiện (mục 8) và quyết định banner")
@@ -53,7 +53,7 @@ r = c.post("/api/lan-do", json={"dan": "D02", "thoi_gian": "2026-11-08T08:00:00"
                                 "ds": [{"con_id": f"D02-{i:02d}", "kg": 60 + i} for i in range(1, 19)]})
 kiem("ghi lần đo", r.status_code == 201)
 bc = c.get("/api/dan/D02/bao-cao").get_json()
-kiem("báo cáo có đủ trường", all(k in bc for k in ("tb_kg", "tang_kg", "tang_pct", "dong_deu_pct", "con_coi", "con_lon_nhanh")))
+kiem("báo cáo có đủ trường", all(k in bc for k in ("tb_kg", "tang_kg", "tang_pct", "dong_deu_pct", "con_coi", "con_lon_nhanh", "con_binh_thuong")))
 kiem("lần đo sai bị từ chối", c.post("/api/lan-do", json={"dan": "D02", "thoi_gian": "2026-11-08T08:00:00", "ds": [{"con_id": "a", "kg": 9999}]}).status_code == 400)
 
 print("4. Vùng và chạy video (MOCK nếu chưa có ai/pipeline.py)")

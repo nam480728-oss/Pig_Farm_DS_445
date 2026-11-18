@@ -3,6 +3,7 @@
 Chạy:  python seed.py && python app.py   ->  http://127.0.0.1:5000
 """
 import json
+import re
 from datetime import datetime
 
 from flask import Flask, abort, jsonify, render_template, request, send_from_directory
@@ -71,8 +72,11 @@ def trang_chu():
         tong_con = c.execute("SELECT COALESCE(SUM(so_dang_ky),0) FROM o_chuong").fetchone()[0]
         o_khan_cap = {r["o"] for r in c.execute(
             "SELECT DISTINCT o FROM su_kien WHERE muc='khan_cap' AND trang_thai='moi'")}
+        su_kien_moi = sum(r["su_kien_moi"] for r in o)
+        so_dan = c.execute("SELECT COUNT(*) FROM dan").fetchone()[0]
     return render_template("trang_chu.html", tab="home", o=o, gan_day=gan_day,
-                           khan_cap=khan_cap, tong_con=tong_con, o_khan_cap=o_khan_cap)
+                           khan_cap=khan_cap, tong_con=tong_con, o_khan_cap=o_khan_cap,
+                           su_kien_moi=su_kien_moi, so_dan=so_dan)
 
 
 @app.route("/o-chuong")
@@ -86,6 +90,113 @@ def o_chuong():
                  ORDER BY s.thoi_gian DESC LIMIT 1) AS dem_gan_nhat
             FROM o_chuong o ORDER BY o.ma""").fetchall()
     return render_template("o_chuong.html", tab="o", rows=rows)
+
+
+def tao_anh_camera_mau(ma, n=20):
+    """Tạo ảnh camera mô phỏng cho ô mới nếu chưa tải ảnh nền."""
+    import random
+    import cv2
+    import numpy as np
+    img = np.full((540, 960, 3), (150, 160, 150), np.uint8)
+    cv2.rectangle(img, (80, 60), (880, 480), (120, 130, 120), 6)
+    for _ in range(max(1, min(n, 30))):
+        c = (random.randint(150, 800), random.randint(100, 440))
+        cv2.ellipse(img, c, (45, 24), random.randint(0, 180), 0, 360, (190, 170, 200), -1)
+    cv2.putText(img, f"O {ma} (AI Camera)", (24, 38), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    dich = DATA / "camera" / f"{ma}.jpg"
+    dich.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(dich), img)
+
+
+@app.post("/api/o-chuong")
+def api_them_o_chuong():
+    """Thêm một ô chuồng mới khi mở rộng trang trại."""
+    if request.is_json:
+        p = request.get_json(silent=True) or {}
+        f = None
+    else:
+        p = request.form
+        f = request.files.get("file_anh")
+
+    ma = (p.get("ma") or "").strip().upper()
+    ten = (p.get("ten") or "").strip()
+    try:
+        so_dang_ky = int(p.get("so_dang_ky", 0))
+    except (TypeError, ValueError):
+        return jsonify(ok=False, loi=["Số lượng lợn đăng ký phải là số nguyên"]), 400
+
+    if not ma:
+        return jsonify(ok=False, loi=["Mã ô không được để trống"]), 400
+    if not re.match(r"^[A-Z0-9_-]{1,10}$", ma):
+        return jsonify(ok=False, loi=["Mã ô chỉ gồm 1–10 ký tự chữ cái hoặc số (vd: E, F, O5)"]), 400
+    if not ten:
+        ten = f"Ô {ma} – lợn thịt"
+    if so_dang_ky < 0 or so_dang_ky > 500:
+        return jsonify(ok=False, loi=["Số lượng đăng ký trong khoảng 0–500 con"]), 400
+
+    camera_url = f"videos/o_{ma.lower()}.mp4"
+    with db.connect() as c:
+        if c.execute("SELECT 1 FROM o_chuong WHERE ma=?", (ma,)).fetchone():
+            return jsonify(ok=False, loi=[f"Mã ô '{ma}' đã tồn tại trong hệ thống"]), 400
+        c.execute("INSERT INTO o_chuong(ma, ten, so_dang_ky, camera) VALUES (?, ?, ?, ?)",
+                  (ma, ten, so_dang_ky, camera_url))
+
+    # Đồng bộ sang MySQL nếu có
+    db.sync_mysql("INSERT INTO o_chuong(ma, ten, so_dang_ky, camera) VALUES (%s, %s, %s, %s)",
+                  (ma, ten, so_dang_ky, camera_url))
+
+    # Xử lý ảnh camera nền cho ô mới
+    if f and f.filename:
+        try:
+            pipeline_adapter.luu_khung_hinh(f, DATA / "camera" / f"{ma}.jpg")
+        except Exception:
+            tao_anh_camera_mau(ma, so_dang_ky)
+    else:
+        tao_anh_camera_mau(ma, so_dang_ky)
+
+    return jsonify(ok=True, ma=ma, ten=ten, so_dang_ky=so_dang_ky), 201
+
+
+@app.delete("/api/o-chuong/<ma>")
+def api_xoa_o_chuong(ma):
+    """Xóa một ô chuồng."""
+    with db.connect() as c:
+        if not c.execute("SELECT 1 FROM o_chuong WHERE ma=?", (ma,)).fetchone():
+            return jsonify(ok=False, loi=["Không tìm thấy ô chuồng này"]), 404
+        if c.execute("SELECT 1 FROM dan WHERE o=?", (ma,)).fetchone():
+            return jsonify(ok=False, loi=[f"Ô '{ma}' đang có đàn lợn liên kết. Hãy xóa hoặc chuyển đàn trước."]), 400
+
+        c.execute("DELETE FROM su_kien WHERE o=?", (ma,))
+        c.execute("DELETE FROM o_chuong WHERE ma=?", (ma,))
+
+    db.sync_mysql("DELETE FROM su_kien WHERE o=%s", (ma,))
+    db.sync_mysql("DELETE FROM o_chuong WHERE ma=%s", (ma,))
+    (DATA / "camera" / f"{ma}.jpg").unlink(missing_ok=True)
+    return jsonify(ok=True)
+
+
+@app.put("/api/o-chuong/<ma>")
+def api_sua_o_chuong(ma):
+    """Cập nhật thông tin ô chuồng."""
+    p = request.get_json(silent=True) or {}
+    ten = p.get("ten")
+    so_dang_ky = p.get("so_dang_ky")
+
+    with db.connect() as c:
+        if not c.execute("SELECT 1 FROM o_chuong WHERE ma=?", (ma,)).fetchone():
+            return jsonify(ok=False, loi=["Không tìm thấy ô chuồng này"]), 404
+        if ten is not None and ten.strip():
+            c.execute("UPDATE o_chuong SET ten=? WHERE ma=?", (ten.strip(), ma))
+            db.sync_mysql("UPDATE o_chuong SET ten=%s WHERE ma=%s", (ten.strip(), ma))
+        if so_dang_ky is not None:
+            try:
+                sdk = int(so_dang_ky)
+                if 0 <= sdk <= 500:
+                    c.execute("UPDATE o_chuong SET so_dang_ky=? WHERE ma=?", (sdk, ma))
+                    db.sync_mysql("UPDATE o_chuong SET so_dang_ky=%s WHERE ma=%s", (sdk, ma))
+            except (TypeError, ValueError):
+                pass
+    return jsonify(ok=True)
 
 
 @app.route("/xem/<ma>")
@@ -125,7 +236,9 @@ def dan():
 @app.route("/dan/<ma>")
 def dan_chi_tiet(ma):
     tab = request.args.get("tab", "tong_quan")
-    if tab not in ("tong_quan", "coi", "lon_nhanh"):
+    if tab in ("binh_thuong", "on_dinh"):
+        tab = "binh_thuong"
+    elif tab not in ("tong_quan", "coi", "lon_nhanh"):
         tab = "tong_quan"
     with db.connect() as c:
         bc = phat_trien.bao_cao(c, ma)
@@ -140,16 +253,21 @@ def dan_chi_tiet(ma):
 def su_kien():
     muc = request.args.get("muc")
     o = request.args.get("o")
+    trang_thai = request.args.get("trang_thai")
     sql, args = "SELECT * FROM su_kien WHERE 1=1", []
     if muc in events.MUC:
         sql += " AND muc=?"; args.append(muc)
     if o:
         sql += " AND o=?"; args.append(o)
+    if trang_thai in ("moi", "dung", "bao_nham"):
+        sql += " AND trang_thai=?"; args.append(trang_thai)
+    else:
+        trang_thai = None
     sql += " ORDER BY thoi_gian DESC LIMIT 100"
     with db.connect() as c:
         rows = [db.row_to_event(r) for r in c.execute(sql, args)]
         o_list = [r["ma"] for r in c.execute("SELECT ma FROM o_chuong ORDER BY ma")]
-    return render_template("su_kien.html", tab="sk", rows=rows, muc=muc, o_sel=o, o_list=o_list)
+    return render_template("su_kien.html", tab="sk", rows=rows, muc=muc, o_sel=o, tt_sel=trang_thai, o_list=o_list)
 
 
 @app.route("/cai-dat")
@@ -173,7 +291,12 @@ def luu_su_kien(payload):
             "INSERT INTO su_kien(loai,o,thoi_gian,muc,anh,du_lieu,hien_ngay) VALUES (?,?,?,?,?,?,?)",
             (ev["loai"], ev["o"], ev["thoi_gian"], ev["muc"], ev["anh"],
              json.dumps(ev["du_lieu"], ensure_ascii=False), hien_ngay))
-    return {"ok": True, "id": cur.lastrowid, "hien_ngay": bool(hien_ngay)}, 201
+        ev_id = cur.lastrowid
+    db.sync_mysql(
+        "REPLACE INTO su_kien(id,loai,o,thoi_gian,muc,anh,du_lieu,trang_thai,hien_ngay) VALUES (%s,%s,%s,%s,%s,%s,%s,'moi',%s)",
+        (ev_id, ev["loai"], ev["o"], ev["thoi_gian"], ev["muc"], ev["anh"],
+         json.dumps(ev["du_lieu"], ensure_ascii=False), hien_ngay))
+    return {"ok": True, "id": ev_id, "hien_ngay": bool(hien_ngay)}, 201
 
 
 @app.post("/api/su-kien")
@@ -217,6 +340,7 @@ def api_phan_hoi(sid):
         cur = c.execute("UPDATE su_kien SET trang_thai=? WHERE id=?", (ph, sid))
     if not cur.rowcount:
         return jsonify(ok=False, loi=["Không có sự kiện này"]), 404
+    db.sync_mysql("UPDATE su_kien SET trang_thai=%s WHERE id=%s", (ph, sid))
     return jsonify(ok=True, trang_thai=ph)
 
 
@@ -253,8 +377,9 @@ def api_lan_do():
     with db.connect() as c:
         if not c.execute("SELECT 1 FROM dan WHERE ma=?", (p.get("dan"),)).fetchone():
             return jsonify(ok=False, loi=[f"Đàn '{p.get('dan')}' chưa có"]), 400
-        c.executemany("INSERT INTO lan_do(dan,con_id,thoi_gian,kg,anh) VALUES (?,?,?,?,?)",
-                      [(p["dan"], x["con_id"], p["thoi_gian"], x["kg"], x.get("anh")) for x in ds])
+        lan_params = [(p["dan"], x["con_id"], p["thoi_gian"], x["kg"], x.get("anh")) for x in ds]
+        c.executemany("INSERT INTO lan_do(dan,con_id,thoi_gian,kg,anh) VALUES (?,?,?,?,?)", lan_params)
+        db.sync_mysql_many("INSERT INTO lan_do(dan,con_id,thoi_gian,kg,anh) VALUES (%s,%s,%s,%s,%s)", lan_params)
     return jsonify(ok=True, so_con=len(ds)), 201
 
 
@@ -286,8 +411,9 @@ def api_luu_cai_dat():
         if "nguong" in out:
             out["nguong"] = {**cur_st.get("nguong", {}), **out["nguong"]}
         for k, v in out.items():
-            c.execute("INSERT OR REPLACE INTO cai_dat(khoa, gia_tri) VALUES (?,?)",
-                      (k, json.dumps(v, ensure_ascii=False)))
+            val_json = json.dumps(v, ensure_ascii=False)
+            c.execute("INSERT OR REPLACE INTO cai_dat(khoa, gia_tri) VALUES (?,?)", (k, val_json))
+            db.sync_mysql("REPLACE INTO cai_dat(khoa, gia_tri) VALUES (%s, %s)", (k, val_json))
         st_moi = db.get_settings(c)
     return jsonify(ok=True, cai_dat=st_moi)
 

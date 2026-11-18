@@ -161,11 +161,12 @@ a, button, input, select {
   outline-offset: 2px;
 }
 
-/* ---------- Phone App Shell ---------- */
-.phone {
-  max-width: 420px;
-  height: 100vh;
-  height: 100dvh;
+/* ---------- Phone / Responsive App Shell ---------- */
+.phone, .app-shell {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -173,31 +174,109 @@ a, button, input, select {
   position: relative;
 }
 
-@media (min-width: 480px) {
+@media (min-width: 768px) {
   body {
-    background: radial-gradient(circle at 50% 0%, var(--line) 0%, var(--bg-desktop) 100%);
+    background: var(--bg);
   }
-  .phone {
-    height: min(890px, 95vh);
-    margin: 2.5vh auto;
-    border-radius: 32px;
-    overflow: hidden;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 0 0 6px rgba(255, 255, 255, 0.08);
-    border: 1px solid var(--line-strong);
+
+  .phone, .app-shell {
+    max-width: 100%;
+    min-height: 100vh;
+    height: auto;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    overflow: visible;
   }
 }
 
-/* ---------- Top Header Bar ---------- */
+/* ---------- Top Header Bar (Fixed / Sticky on Mobile & Desktop) ---------- */
 .topbar {
-  padding: 13px 16px;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 500;
+  padding: 12px 16px;
   background: var(--brand-bg);
   color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  width: 100%;
+}
+
+.topbar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+.topbar-title-wrap {
+  display: flex;
+  align-items: center;
   gap: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
-  z-index: 20;
+  min-width: 0;
+}
+
+.topbar-nav {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .topbar {
+    padding: 10px 24px;
+  }
+
+  .topbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .topbar-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border-radius: var(--r-pill);
+    color: rgba(255, 255, 255, 0.88);
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+
+  .topbar-nav a i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .topbar-nav a i svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.2;
+  }
+
+  .topbar-nav a:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .topbar-nav a.on {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.24);
+    font-weight: 700;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  }
+
+  /* Bottom Tabbar hidden on tablet & desktop */
+  .tabbar {
+    display: none !important;
+  }
 }
 
 .topbar-title-wrap {
@@ -273,8 +352,7 @@ a, button, input, select {
 /* ---------- Screen Scroll Container ---------- */
 .screen {
   flex: 1;
-  overflow-y: auto;
-  padding: 14px 16px 24px;
+  padding: 14px 16px calc(76px + env(safe-area-inset-bottom, 12px));
   scroll-behavior: smooth;
 }
 
@@ -285,6 +363,20 @@ a, button, input, select {
 .screen::-webkit-scrollbar-thumb {
   background: var(--line-strong);
   border-radius: 99px;
+}
+
+@media (min-width: 768px) {
+  .screen {
+    max-width: 1360px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 24px 24px 60px;
+    overflow-y: visible;
+  }
+
+  .screen.flush {
+    padding: 24px 24px 60px;
+  }
 }
 
 /* ---------- Section Headings ---------- */
@@ -308,15 +400,21 @@ h2 {
   margin: 0;
 }
 
-/* ---------- Bottom Navigation Tabbar ---------- */
+/* ---------- Bottom Navigation Tabbar (Fixed on Mobile) ---------- */
 .tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
   display: flex;
   background: var(--glass);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid var(--line);
-  padding: 4px 6px env(safe-area-inset-bottom, 4px);
-  z-index: 20;
+  padding: 5px 8px calc(5px + env(safe-area-inset-bottom, 6px));
+  z-index: 1000;
+  box-shadow: 0 -3px 16px rgba(0, 0, 0, 0.08);
 }
 
 .tabbar a {
@@ -429,6 +527,14 @@ a.card.link:hover, a.card.small:hover {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-bottom: 8px;
+}
+
+@media (min-width: 768px) {
+  .stats {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
 }
 
 .stat {
@@ -707,12 +813,15 @@ a.card.link:hover, a.card.small:hover {
 
 /* ---------- Live Alert Banner (#banner) ---------- */
 .banner {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 54px;
   background: var(--kc);
   color: #fff;
   padding: 12px 15px;
   box-shadow: var(--shadow-md);
   animation: vao 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 15;
+  z-index: 450;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
@@ -1200,9 +1309,23 @@ canvas#cv {
 
 /* ---------- Danh sách camera ---------- */
 .cam-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 12px;
+}
+
+@media (min-width: 600px) {
+  .cam-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .cam-list {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
 }
 
 .cam-card {
@@ -1304,7 +1427,13 @@ canvas#cv {
 
 /* ---------- Màn hình xem camera ---------- */
 .screen.flush {
-  padding: 0 0 24px;
+  padding: 0 0 calc(76px + env(safe-area-inset-bottom, 12px));
+}
+
+@media (min-width: 768px) {
+  .screen.flush {
+    padding: 24px 24px 60px;
+  }
 }
 
 .screen.flush .pad {
@@ -1995,4 +2124,330 @@ canvas#cv {
 .ai-res-actions button:hover {
   border-color: var(--brand);
   color: var(--brand);
+}
+
+
+/* ==========================================================================
+   Quản lý & Thêm ô chuồng mới (Mở rộng trang trại)
+   ========================================================================== */
+.btn-sm-add {
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  background: var(--brand-bg);
+  color: #fff;
+  border: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(27, 122, 67, 0.25);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.btn-sm-add:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.form-card {
+  border: 1.5px solid var(--brand);
+  background: var(--panel);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 16px;
+  animation: vao 0.22s ease;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.form-field label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.form-field input[type="text"],
+.form-field input[type="number"],
+.form-field input[type="file"] {
+  max-width: 100% !important;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel-subtle);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+  box-sizing: border-box;
+}
+
+.form-field input[type="text"]:focus,
+.form-field input[type="number"]:focus {
+  border-color: var(--brand);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-soft);
+  background: var(--panel);
+}
+
+.form-field small.hint {
+  margin-top: 2px;
+  font-size: 11.5px;
+}
+
+.btn-secondary {
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--panel-subtle);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: var(--line);
+}
+
+.btn-del-pen {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 13px;
+  opacity: 0.55;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.btn-del-pen:hover {
+  opacity: 1;
+  background: var(--kc-soft);
+}
+
+/* ==========================================================================
+   Responsive Web Design: Layouts, Grids & Workstations
+   Phù hợp cho mọi thiết bị: Mobile (<768px), Tablet (768px-1024px), Desktop (>=1024px)
+   ========================================================================== */
+
+/* ---------- Camera View Workstation Layout ---------- */
+.cam-desktop-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+.cam-main-col > :not(.player),
+.cam-side-col {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+@media (min-width: 960px) {
+  .cam-desktop-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(360px, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .cam-main-col > :not(.player),
+  .cam-side-col {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .cam-main-col .player {
+    border-radius: var(--r-lg);
+    border: 1px solid var(--line-strong);
+    box-shadow: var(--shadow-md);
+  }
+
+  .cam-side-col {
+    position: sticky;
+    top: 72px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+    padding-right: 6px;
+  }
+
+  .cam-side-col::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .cam-side-col::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 99px;
+  }
+}
+
+/* ---------- Ô chuồng Grid ---------- */
+.pen-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .pen-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1080px) {
+  .pen-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+}
+
+/* ---------- Theo dõi đàn & Lợn Grid ---------- */
+.herd-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .herd-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1080px) {
+  .herd-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+}
+
+.pig-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .pig-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1080px) {
+  .pig-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}
+
+/* ---------- Nhật ký sự kiện Grid ---------- */
+.events-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .events-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .events-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+}
+
+/* ---------- Action Cards Grid (Cài đặt & Danh mục) ---------- */
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .action-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}
+
+/* ---------- Auto Schedule Cards Grid ---------- */
+.auto-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .auto-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .auto-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+}
+
+/* ---------- Drawing Zones & Forms Responsiveness ---------- */
+@media (min-width: 768px) {
+  .canvas-wrap {
+    max-width: 980px;
+    margin: 16px auto;
+    box-shadow: var(--shadow-md);
+  }
+
+  .tools {
+    justify-content: center;
+    max-width: 980px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .banner {
+    max-width: 1360px;
+    margin: 10px auto;
+    width: calc(100% - 48px);
+    border-radius: var(--r-md);
+  }
+
+  #box-them-o {
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #form-video {
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .filters {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  a.more {
+    display: inline-block;
+  }
 }

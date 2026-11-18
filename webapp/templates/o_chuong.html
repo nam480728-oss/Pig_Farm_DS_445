@@ -1,27 +1,81 @@
 {% extends "base.html" %}
+{% from "_icons.html" import ic %}
 {% block title %}Ô chuồng{% endblock %}
 {% block heading %}Quản lý ô chuồng{% endblock %}
 {% block body_attr %}data-autoreload="1"{% endblock %}
 {% block content %}
+<div class="sec-head sec-head-top">
+  <h2>Danh sách ô <span class="mono-muted">({{ rows|length }})</span></h2>
+  <button type="button" id="btn-toggle-them" class="btn-sm-add" aria-expanded="false" aria-controls="box-them-o">{{ ic('plus', 15) }}<span>Thêm ô mới</span></button>
+</div>
+
+<div id="box-them-o" class="card form-card" hidden>
+  <div class="row">
+    <b class="card-title">Thêm ô chuồng mới</b>
+    <button type="button" class="b-x" id="btn-dong-them" aria-label="Đóng">{{ ic('x', 15) }}</button>
+  </div>
+  <p class="hint form-hint">Thiết lập ô chuồng mới khi mở rộng quy mô trang trại</p>
+
+  <form id="form-them-o" enctype="multipart/form-data">
+    <div class="form-field">
+      <label for="inp-ma">Mã ô chuồng <span class="req">*</span></label>
+      <input type="text" id="inp-ma" name="ma" placeholder="E, F, O5" required maxlength="10" style="text-transform:uppercase">
+      <small class="hint">1–10 ký tự viết tắt, duy nhất trong hệ thống</small>
+    </div>
+
+    <div class="form-field">
+      <label for="inp-ten">Tên gọi ô chuồng</label>
+      <input type="text" id="inp-ten" name="ten" placeholder="Ô E – Lợn thịt xuất chuồng">
+    </div>
+
+    <div class="form-field">
+      <label for="inp-so-con">Số lượng lợn đăng ký ban đầu</label>
+      <input type="number" id="inp-so-con" name="so_dang_ky" min="0" max="500" value="20">
+    </div>
+
+    <div class="form-field">
+      <label for="inp-file-anh">Ảnh nền camera hoặc video (tùy chọn)</label>
+      <input type="file" id="inp-file-anh" name="file_anh" accept="image/*,video/*">
+      <small class="hint">Để trống để hệ thống tự sinh ảnh camera mô phỏng khi vẽ vùng AI</small>
+    </div>
+
+    <div class="btn-row form-actions">
+      <button type="submit" class="primary" id="btn-submit-them" style="flex:2">Lưu ô chuồng</button>
+      <button type="button" id="btn-huy-them" class="btn-secondary" style="flex:1">Hủy</button>
+    </div>
+    <p id="kq-them-o" class="kq" role="status" aria-live="polite"></p>
+  </form>
+</div>
+
+<div class="pen-grid">
 {% for r in rows %}
-<div class="card">
+<div class="card" data-pen-card="{{ r.ma }}">
   <div class="row">
     <div class="card-title">
-      <span>🏠 {{ r.ten }}</span>
+      <span>{{ r.ten }}</span>
     </div>
-    {% if r.su_kien_moi %}
-      <span class="chip canh_bao">{{ r.su_kien_moi }} sự kiện mới</span>
-    {% else %}
-      <span class="chip ok">Ổn định</span>
-    {% endif %}
+    <div class="row-actions">
+      {% if r.su_kien_moi %}
+        <span class="chip canh_bao"><span class="mono-num">{{ r.su_kien_moi }}</span> mới</span>
+      {% else %}
+        <span class="chip ok">Ổn định</span>
+      {% endif %}
+      <button type="button" class="btn-del-pen" data-xoa-o="{{ r.ma }}" data-ten="{{ r.ten }}" title="Xóa ô này" aria-label="Xóa ô {{ r.ma }}">
+        {{ ic('trash', 15) }}
+      </button>
+    </div>
+  </div>
+  <div class="kv">
+    <span>Mã ô định danh</span>
+    <b class="mono-tag">Ô {{ r.ma }}</b>
   </div>
   <div class="kv">
     <span>Số lượng đăng ký</span>
-    <b>{{ r.so_dang_ky }} con</b>
+    <b class="mono-num">{{ r.so_dang_ky }} con</b>
   </div>
   <div class="kv">
     <span>AI đếm gần nhất</span>
-    <b>{{ (r.dem_gan_nhat|string ~ ' con') if r.dem_gan_nhat is not none else '—' }}</b>
+    <b class="mono-num">{{ (r.dem_gan_nhat|string ~ ' con') if r.dem_gan_nhat is not none else '—' }}</b>
   </div>
   <div class="kv">
     <span>Cấu hình vùng camera</span>
@@ -33,8 +87,13 @@
       {% endif %}
     </b>
   </div>
-  <a class="more" href="/xem/{{ r.ma }}">📹 Xem camera →</a>
-  <a class="more" href="/ve-vung/{{ r.ma }}">🎯 Vẽ vùng trên camera →</a>
+  <div class="card-links">
+    <a class="more" href="/xem/{{ r.ma }}">{{ ic('video', 14) }}<span>Xem camera</span></a>
+    <a class="more" href="/ve-vung/{{ r.ma }}">{{ ic('target', 14) }}<span>Vẽ vùng</span></a>
+  </div>
 </div>
 {% endfor %}
+</div>
+
+<script src="{{ url_for('static', filename='js/o_chuong.js') }}"></script>
 {% endblock %}

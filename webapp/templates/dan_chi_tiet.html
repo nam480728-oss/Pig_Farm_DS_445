@@ -1,59 +1,77 @@
 {% extends "base.html" %}
+{% from "_icons.html" import ic %}
 {% block title %}Đàn {{ bc.dan }}{% endblock %}
 {% block heading %}Đàn {{ bc.dan }} · Ô {{ bc.o }}{% endblock %}
 {% macro con_list(ds) %}
-  {% for x in ds %}
-  <div class="card pig">
-    {% if x.anh %}<img src="/{{ x.anh }}" alt="Con {{ x.con_id }}">{% else %}<div class="no-pic">🐖</div>{% endif %}
-    <div style="flex:1">
-      <div class="row">
-        <b>{{ x.con_id }}</b>
-        <span class="chip">{{ x.kg }} kg</span>
+  {% if ds %}
+  <div class="pig-grid">
+    {% for x in ds %}
+    <div class="card pig">
+      {% if x.anh %}<img src="/{{ x.anh }}" alt="Con {{ x.con_id }}">{% else %}<div class="no-pic">{{ ic('camera', 18) }}</div>{% endif %}
+      <div class="pig-body">
+        <div class="row">
+          <b class="mono-tag">{{ x.con_id }}</b>
+          <span class="mono-badge">{{ x.kg }} kg</span>
+        </div>
+        <div class="muted pig-meta">So với mốc: <b class="mono-num">{{ '%+.1f'|format(x.chenh_moc) }} kg</b></div>
+        <div class="muted pig-meta">So với TB đàn: <b class="mono-num">{{ '%+.1f'|format(x.chenh_tb) }} kg ({{ '%+.1f'|format(x.chenh_tb_pct) }}%)</b></div>
       </div>
-      <div class="muted" style="margin-top:4px">So với mốc: <b>{{ '%+.1f'|format(x.chenh_moc) }} kg</b></div>
-      <div class="muted">So với TB đàn: <b>{{ '%+.1f'|format(x.chenh_tb) }} kg ({{ '%+.1f'|format(x.chenh_tb_pct) }}%)</b></div>
     </div>
+    {% endfor %}
   </div>
-  {% else %}<p class="muted center">Không có con nào trong nhóm này.</p>{% endfor %}
+  {% else %}<p class="muted center">Không có con nào trong nhóm này</p>{% endif %}
 {% endmacro %}
 {% block content %}
-<div class="filters" role="tablist">
-  <a href="?tab=tong_quan" class="{{ 'on' if sub=='tong_quan' }}">📊 Tổng quan</a>
-  <a href="?tab=coi" class="{{ 'on' if sub=='coi' }}">⚠️ Con còi{% if bc.con_coi %} ({{ bc.con_coi|length }}){% endif %}</a>
-  <a href="?tab=lon_nhanh" class="{{ 'on' if sub=='lon_nhanh' }}">🚀 Lớn nhanh{% if bc.con_lon_nhanh %} ({{ bc.con_lon_nhanh|length }}){% endif %}</a>
+<div class="filters" role="tablist" aria-label="Phân loại phát triển đàn">
+  <a href="?tab=tong_quan" role="tab" aria-selected="{{ 'true' if sub=='tong_quan' else 'false' }}" class="{{ 'on' if sub=='tong_quan' }}">{{ ic('chart', 14) }}<span>Tổng quan</span></a>
+  <a href="?tab=coi" role="tab" aria-selected="{{ 'true' if sub=='coi' else 'false' }}" class="{{ 'on' if sub=='coi' }}">{{ ic('alert', 14) }}<span>Con còi{% if bc.con_coi %} <span class="tab-count">({{ bc.con_coi|length }})</span>{% endif %}</span></a>
+  <a href="?tab=lon_nhanh" role="tab" aria-selected="{{ 'true' if sub=='lon_nhanh' else 'false' }}" class="{{ 'on' if sub=='lon_nhanh' }}">{{ ic('trending', 14) }}<span>Lớn nhanh{% if bc.con_lon_nhanh %} <span class="tab-count">({{ bc.con_lon_nhanh|length }})</span>{% endif %}</span></a>
+  <a href="?tab=binh_thuong" role="tab" aria-selected="{{ 'true' if sub in ('binh_thuong', 'on_dinh') else 'false' }}" class="{{ 'on' if sub in ('binh_thuong', 'on_dinh') }}">{{ ic('scale', 14) }}<span>Phát triển ổn định{% if bc.con_binh_thuong %} <span class="tab-count">({{ bc.con_binh_thuong|length }})</span>{% endif %}</span></a>
 </div>
 {% if not bc.co_du_lieu %}
-  <p class="muted center">Đàn này chưa có lần đo cân nặng.</p>
+  <p class="muted center">Đàn này chưa có lần đo cân nặng</p>
 {% elif sub == 'tong_quan' %}
   <section class="stats">
     <div class="stat">
-      <b>{{ bc.tb_kg }} kg</b>
-      <span>TB đàn · {{ bc.so_con_do }}/{{ bc.so_con }} con · {{ bc.tuoi_ngay }} ngày tuổi</span>
+      <span class="stat-label">Trung bình đàn</span>
+      <b class="mono-num">{{ bc.tb_kg }} kg</b>
+      <span class="stat-sub">{{ bc.so_con_do }}/{{ bc.so_con }} con · {{ bc.tuoi_ngay }} ngày tuổi</span>
     </div>
     <div class="stat">
-      <b>{% if bc.tang_kg is not none %}{{ '%+.1f'|format(bc.tang_kg) }} kg{% else %}—{% endif %}</b>
-      <span>{% if bc.tang_pct is not none %}{{ '%+.1f'|format(bc.tang_pct) }}% so với {{ bc.ngay_ky_truoc[5:] }}{% else %}Chưa có kỳ trước{% endif %}</span>
+      <span class="stat-label">Tăng trưởng kỳ đo</span>
+      <b class="mono-num">{% if bc.tang_kg is not none %}{{ '%+.1f'|format(bc.tang_kg) }} kg{% else %}—{% endif %}</b>
+      <span class="stat-sub">{% if bc.tang_pct is not none %}{{ '%+.1f'|format(bc.tang_pct) }}% so với {{ bc.ngay_ky_truoc[5:] }}{% else %}Chưa có kỳ trước{% endif %}</span>
     </div>
     <div class="stat">
-      <b>{{ bc.dong_deu_pct }}%</b>
-      <span>Đồng đều (±10% TB) · CV {{ bc.cv_pct }}%</span>
+      <span class="stat-label">Độ đồng đều (±10%)</span>
+      <b class="mono-num">{{ bc.dong_deu_pct }}%</b>
+      <span class="stat-sub">Biên cố định ±10% TB · CV <span class="mono-num">{{ bc.cv_pct }}%</span></span>
     </div>
     <div class="stat {{ 'alert' if bc.tb_chenh_moc < 0 }}">
-      <b>{{ '%+.1f'|format(bc.tb_chenh_moc) }} kg</b>
-      <span>So với mốc {{ bc.moc_kg }} kg</span>
+      <span class="stat-label">Chênh lệch mốc chuẩn</span>
+      <b class="mono-num">{{ '%+.1f'|format(bc.tb_chenh_moc) }} kg</b>
+      <span class="stat-sub">Mốc chuẩn <span class="mono-num">{{ bc.moc_kg }} kg</span></span>
     </div>
   </section>
-  <h2>Biểu đồ tăng trưởng TB đàn so với mốc</h2>
+  <div class="sec-head">
+    <h2>Biểu đồ tăng trưởng trung bình đàn</h2>
+  </div>
   <div class="card chart">
     {{ bieu_do|safe }}
-    <p class="hint">Đường liền xanh: TB đàn · Đường nét đứt: Mốc chuẩn ({{ bc.moc_kg }} kg)</p>
+    <div class="chart-legend">
+      <span><i class="leg-line leg-brand"></i>Trung bình đàn</span>
+      <span><i class="leg-line leg-ref"></i>Mốc chuẩn (<span class="mono-num">{{ bc.moc_kg }} kg</span>)</span>
+    </div>
   </div>
 {% elif sub == 'coi' %}
-  <p class="hint" style="margin-bottom:10px">Con còi: thấp hơn TB đàn từ {{ nguong.coi_phan_tram }}% (chỉnh ở Cài đặt).</p>
+  <p class="hint tab-hint">Con còi: thấp hơn TB đàn từ <span class="mono-num">{{ nguong.coi_phan_tram }}%</span> (cấu hình trong Cài đặt)</p>
   {{ con_list(bc.con_coi) }}
-{% else %}
-  <p class="hint" style="margin-bottom:10px">Con lớn nhanh: cao hơn TB đàn từ {{ nguong.lon_nhanh_phan_tram }}% (chỉnh ở Cài đặt).</p>
+{% elif sub == 'lon_nhanh' %}
+  <p class="hint tab-hint">Con lớn nhanh: cao hơn TB đàn từ <span class="mono-num">{{ nguong.lon_nhanh_phan_tram }}%</span> (cấu hình trong Cài đặt)</p>
   {{ con_list(bc.con_lon_nhanh) }}
+{% elif sub in ('binh_thuong', 'on_dinh') %}
+  <p class="hint tab-hint">Phát triển ổn định: trong ngưỡng từ <span class="mono-num">-{{ nguong.coi_phan_tram }}%</span> đến <span class="mono-num">+{{ nguong.lon_nhanh_phan_tram }}%</span> so với TB đàn (theo cấu hình Cài đặt, khác với chỉ số độ đồng đều cố định ±10%)</p>
+  {{ con_list(bc.con_binh_thuong) }}
 {% endif %}
-<a class="more" href="/dan">← Quay lại danh sách đàn</a>
+<a class="more" href="/dan">{{ ic('arrow_left', 14) }}<span>Quay lại danh sách đàn</span></a>
 {% endblock %}

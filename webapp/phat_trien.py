@@ -38,7 +38,8 @@ def bao_cao(conn, ma):
         return None
     st = db.get_settings(conn)["nguong"]
     rows = conn.execute("SELECT * FROM lan_do WHERE dan=? ORDER BY thoi_gian", (ma,)).fetchall()
-    out = {"dan": ma, "o": d["o"], "so_con": d["so_con"], "co_du_lieu": bool(rows)}
+    out = {"dan": ma, "o": d["o"], "so_con": d["so_con"], "co_du_lieu": bool(rows),
+           "con_coi": [], "con_lon_nhanh": [], "con_binh_thuong": []}
     if not rows:
         return out
 
@@ -74,22 +75,26 @@ def bao_cao(conn, ma):
                  key=lambda r: r["kg"])
     lon = sorted((r for r in gan.values() if r["kg"] >= tb * (1 + st["lon_nhanh_phan_tram"] / 100)),
                  key=lambda r: -r["kg"])
+    binh_thuong = sorted((r for r in gan.values()
+                          if tb * (1 - st["coi_phan_tram"] / 100) < r["kg"] < tb * (1 + st["lon_nhanh_phan_tram"] / 100)),
+                         key=lambda r: r["kg"])
     out["con_coi"] = [_con(r, tb, moc) for r in coi]
     out["con_lon_nhanh"] = [_con(r, tb, moc) for r in lon]
+    out["con_binh_thuong"] = [_con(r, tb, moc) for r in binh_thuong]
     out["chuoi"] = [{"ngay": n, "tb": round(mean(r["kg"] for r in theo_ngay[n].values()), 1),
                      "moc": round(moc_tai(n), 1)} for n in ngays]
     return out
 
 
-def ve_bieu_do(chuoi, rong=340, cao=165):
-    """SVG đường: trung bình đàn (xanh) và mốc (nét đứt). Trả về chuỗi SVG."""
+def ve_bieu_do(chuoi, rong=680, cao=240):
+    """SVG đường: trung bình đàn (màu nhấn) và mốc (nét đứt trung tính). Trả về chuỗi SVG."""
     if len(chuoi) < 2:
         return ""
     gia_tri = [x["tb"] for x in chuoi] + [x["moc"] for x in chuoi]
     lo, hi = min(gia_tri) * 0.94, max(gia_tri) * 1.06
     if hi <= lo:
         hi = lo + 1
-    le_trai, le_phai, le_tren, le_duoi = 32, 12, 16, 26
+    le_trai, le_phai, le_tren, le_duoi = 44, 16, 16, 28
     w_ve = rong - le_trai - le_phai
     h_ve = cao - le_tren - le_duoi
 
@@ -103,11 +108,6 @@ def ve_bieu_do(chuoi, rong=340, cao=165):
 
     pts_tb = [toa_do(i, x["tb"]) for i, x in enumerate(chuoi)]
     pts_moc = [toa_do(i, x["moc"]) for i, x in enumerate(chuoi)]
-    vung_tb = (
-        f"M {pts_tb[0][0]:.1f},{cao - le_duoi} "
-        + " ".join(f"L {x:.1f},{y:.1f}" for x, y in pts_tb)
-        + f" L {pts_tb[-1][0]:.1f},{cao - le_duoi} Z"
-    )
 
     luoi_y = ""
     for f in (0.0, 0.5, 1.0):
@@ -115,13 +115,13 @@ def ve_bieu_do(chuoi, rong=340, cao=165):
         val = round(hi - f * (hi - lo))
         luoi_y += (
             f'<line x1="{le_trai}" y1="{y:.1f}" x2="{rong - le_phai}" y2="{y:.1f}" '
-            f'stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="3 3"/>'
-            f'<text x="{le_trai - 6}" y="{y + 3:.1f}" font-size="10" text-anchor="end" '
-            f'fill="currentColor" opacity=".55">{val}</text>'
+            f'stroke="var(--line)" stroke-width="1"/>'
+            f'<text x="{le_trai - 8}" y="{y + 4:.1f}" font-size="11" font-family="var(--font-mono)" '
+            f'text-anchor="end" fill="var(--muted)">{val} kg</text>'
         )
 
     nhan = "".join(
-        '<text x="%.1f" y="%d" font-size="10" text-anchor="%s" fill="currentColor" opacity=".6">%s</text>'
+        '<text x="%.1f" y="%d" font-size="11" font-family="var(--font-mono)" text-anchor="%s" fill="var(--muted)">%s</text>'
         % (
             toa_do(i, lo)[0],
             cao - 6,
@@ -132,7 +132,7 @@ def ve_bieu_do(chuoi, rong=340, cao=165):
     )
 
     cham_moc = "".join(
-        f'<circle cx="{x:.1f}" cy="{y:.1f}" r="2.5" fill="var(--panel)" stroke="#94a3b8" stroke-width="1.5"/>'
+        f'<circle cx="{x:.1f}" cy="{y:.1f}" r="2.5" fill="var(--panel)" stroke="var(--muted)" stroke-width="1.5"/>'
         for x, y in pts_moc
     )
     cham_tb = "".join(
@@ -142,13 +142,8 @@ def ve_bieu_do(chuoi, rong=340, cao=165):
 
     return (
         f'<svg viewBox="0 0 {rong} {cao}" role="img" aria-label="Trung bình đàn so với mốc" width="100%">'
-        f'<defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">'
-        f'<stop offset="0%" stop-color="var(--brand)" stop-opacity="0.26"/>'
-        f'<stop offset="100%" stop-color="var(--brand)" stop-opacity="0.0"/>'
-        f'</linearGradient></defs>'
         f'{luoi_y}'
-        f'<path d="{vung_tb}" fill="url(#chartGrad)"/>'
-        f'<polyline points="{duong("moc")}" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round" stroke-linejoin="round"/>'
-        f'<polyline points="{duong("tb")}" fill="none" stroke="var(--brand)" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/>'
+        f'<polyline points="{duong("moc")}" fill="none" stroke="var(--muted)" stroke-opacity="0.6" stroke-width="1.5" stroke-dasharray="4 4" stroke-linecap="round" stroke-linejoin="round"/>'
+        f'<polyline points="{duong("tb")}" fill="none" stroke="var(--brand)" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>'
         f'{cham_moc}{cham_tb}{nhan}</svg>'
     )

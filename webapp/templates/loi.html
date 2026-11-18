@@ -1,10 +1,11 @@
 {% extends "base.html" %}
+{% from "_icons.html" import ic %}
 {% block title %}Lỗi {{ ma }}{% endblock %}
 {% block heading %}Không tìm thấy{% endblock %}
 {% block content %}
 <div class="err-page">
-  <h2>{{ ma }}</h2>
+  <h2 class="mono-num">{{ ma }}</h2>
   <p class="muted">{{ thong_diep }}</p>
-  <a class="more" href="/">← Về trang chủ</a>
+  <a class="more" href="/">{{ ic('arrow_left', 14) }}<span>Về trang chủ</span></a>
 </div>
 {% endblock %}

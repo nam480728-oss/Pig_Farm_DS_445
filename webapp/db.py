@@ -115,3 +115,39 @@ def row_to_event(r):
     d = dict(r)
     d["du_lieu"] = json.loads(d["du_lieu"] or "{}")
     return d
+
+
+def sync_mysql(sql, params=None):
+    """Đồng bộ câu lệnh INSERT/UPDATE sang MySQL database 'trang_trai' nếu đang chạy."""
+    if os.environ.get("TT_DATA"):
+        return  # bỏ qua khi đang chạy kiểm thử tự động
+    try:
+        import pymysql
+        conn = pymysql.connect(
+            host="127.0.0.1", port=3306, user="root", password="",
+            database="trang_trai", charset="utf8mb4"
+        )
+        with conn.cursor() as cur:
+            cur.execute(sql, params or ())
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+
+def sync_mysql_many(sql, seq_of_params):
+    """Đồng bộ nhiều dòng sang MySQL."""
+    if os.environ.get("TT_DATA") or not seq_of_params:
+        return
+    try:
+        import pymysql
+        conn = pymysql.connect(
+            host="127.0.0.1", port=3306, user="root", password="",
+            database="trang_trai", charset="utf8mb4"
+        )
+        with conn.cursor() as cur:
+            cur.executemany(sql, seq_of_params)
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass

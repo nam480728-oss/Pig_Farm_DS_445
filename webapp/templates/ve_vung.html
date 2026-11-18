@@ -1,37 +1,33 @@
 {% extends "base.html" %}
+{% from "_icons.html" import ic %}
 {% block title %}Vẽ vùng ô {{ o.ma }}{% endblock %}
 {% block heading %}Vẽ vùng – {{ o.ten }}{% endblock %}
 {% block content %}
 <div class="tools" id="tools" role="toolbar" aria-label="Công cụ vẽ vùng">
-  <button type="button" data-tool="o" class="on">🟢 Ô chuồng</button>
-  <button type="button" data-tool="mang_an">🟠 Máng ăn</button>
-  <button type="button" data-tool="lc_vung">🔴 Lạc chuồng (vùng ngoài)</button>
-  <button type="button" data-tool="lc_vach">📏 Lạc chuồng (vạch)</button>
-  <button type="button" data-tool="vt">📐 Vật tham chiếu</button>
+  <button type="button" data-tool="o" class="on" aria-pressed="true"><span class="tool-dot dot-o"></span><span>Ô chuồng</span></button>
+  <button type="button" data-tool="mang_an" aria-pressed="false"><span class="tool-dot dot-mang"></span><span>Máng ăn</span></button>
+  <button type="button" data-tool="lc_vung" aria-pressed="false"><span class="tool-dot dot-lc"></span><span>Sổng chuồng (vùng ngoài)</span></button>
+  <button type="button" data-tool="lc_vach" aria-pressed="false"><span class="tool-dot dot-lc"></span><span>Sổng chuồng (vạch)</span></button>
 </div>
 <p id="huong-dan" class="hint"></p>
 <div class="canvas-wrap">
   <canvas id="cv"></canvas>
-  {% if not co_anh %}<div class="no-img">Chưa có ảnh camera. Tải ảnh hoặc video lên bên dưới.</div>{% endif %}
+  {% if not co_anh %}<div class="no-img">Chưa có ảnh camera. Tải ảnh hoặc video lên bên dưới</div>{% endif %}
 </div>
 <div class="btn-row">
-  <button type="button" id="btn-xong">✔ Xong hình</button>
-  <button type="button" id="btn-hoan">↩ Hoàn tác</button>
-  <button type="button" id="btn-xoa">🗑 Xoá hình này</button>
+  <button type="button" id="btn-xong">{{ ic('check', 15) }}<span>Xong hình</span></button>
+  <button type="button" id="btn-hoan">{{ ic('undo', 15) }}<span>Hoàn tác</span></button>
+  <button type="button" id="btn-xoa">{{ ic('trash', 15) }}<span>Xóa hình này</span></button>
 </div>
-<label class="kv card" id="dong-cm" hidden style="margin-bottom:10px">
-  <span>Độ dài thật của vật tham chiếu (cm)</span>
-  <input type="number" id="cm" min="1" step="any" value="50">
-</label>
-<button class="primary" type="button" id="btn-luu">💾 Lưu vùng</button>
+<button class="primary" type="button" id="btn-luu">Lưu cấu hình vùng</button>
 <p id="kq" class="kq" role="status" aria-live="polite"></p>
 
 <div class="card">
-  <b class="card-title">🖼️ Cập nhật ảnh nền camera</b>
-  <p class="hint" style="margin-bottom:8px">Chọn ảnh (jpg/png) hoặc video, hệ thống tự trích khung đầu làm ảnh nền.</p>
-  <input type="file" id="file-anh" accept="image/*,video/*">
+  <b class="card-title">Cập nhật ảnh nền camera</b>
+  <p class="hint form-hint">Chọn ảnh (JPG/PNG) hoặc video, hệ thống tự trích khung đầu làm ảnh nền</p>
+  <input type="file" id="file-anh" accept="image/*,video/*" aria-label="Chọn ảnh hoặc video làm ảnh nền camera">
 </div>
-<a class="more" href="/ve-vung">← Chọn ô khác</a>
+<a class="more" href="/ve-vung">{{ ic('arrow_left', 14) }}<span>Chọn ô khác</span></a>
 <script>window.MA_O = {{ o.ma|tojson }}; window.CO_ANH = {{ co_anh|tojson }};</script>
 <script src="{{ url_for('static', filename='js/ve_vung.js') }}"></script>
 {% endblock %}

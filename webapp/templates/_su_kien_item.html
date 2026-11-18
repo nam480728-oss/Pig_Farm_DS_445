@@ -1,30 +1,20 @@
-{% set ICON_LOAI = {
-  'nghi_trom': '🚨',
-  'lac_chuong': '🐖',
-  'nghi_chet': '⚠️',
-  'dem_thieu': '📉',
-  'tho_nhanh': '💨',
-  'bo_an': '🍽️',
-  'o_an_kem': '🥣',
-  'nguoi_la': '👤',
-  'dem_du': '✅'
-} %}
+{% from "_icons.html" import ic, event_icon %}
 <div class="ev {{ e.muc }}" data-ev="{{ e.id }}">
   <div class="ev-head">
-    <b><span>{{ ICON_LOAI.get(e.loai, '🔔') }}</span> {{ LOAI[e.loai] }}</b>
+    <b><span class="ev-ic">{{ event_icon(e.loai, 16) }}</span><span>{{ LOAI[e.loai] }}</span></b>
     <span class="chip {{ e.muc }}">{{ MUC[e.muc] }}</span>
   </div>
-  <div class="ev-meta">Ô {{ e.o }} · {{ e.thoi_gian|gio }}</div>
+  <div class="ev-meta"><span class="mono-tag">Ô {{ e.o }}</span> · <span class="mono-num">{{ e.thoi_gian|gio }}</span></div>
   {% if e.anh %}<img class="ev-img" src="/{{ e.anh }}" alt="Ảnh sự kiện {{ LOAI[e.loai] }}" loading="lazy">{% endif %}
   {% if e.du_lieu %}<div class="ev-data">
-    {% for k, v in e.du_lieu|nhan %}{{ k }}: {{ v }}{{ ' · ' if not loop.last }}{% endfor %}
+    {% for k, v in e.du_lieu|nhan %}{{ k }}: <span class="mono-num">{{ v }}</span>{{ ' · ' if not loop.last }}{% endfor %}
   </div>{% endif %}
   {% if e.trang_thai == 'moi' %}
   <div class="ev-actions">
-    <button type="button" data-ph="dung" data-id="{{ e.id }}">✔ Đúng</button>
-    <button type="button" data-ph="bao_nham" data-id="{{ e.id }}">✖ Báo nhầm</button>
+    <button type="button" data-ph="dung" data-id="{{ e.id }}">{{ ic('check', 14) }}<span>Đúng</span></button>
+    <button type="button" data-ph="bao_nham" data-id="{{ e.id }}">{{ ic('x', 14) }}<span>Báo nhầm</span></button>
   </div>
   {% else %}
-  <div class="ev-actions done">{{ '✔ Đã xác nhận đúng' if e.trang_thai == 'dung' else '✖ Đã báo nhầm' }}</div>
+  <div class="ev-actions done">{{ 'Đã xác nhận đúng' if e.trang_thai == 'dung' else 'Đã báo nhầm' }}</div>
   {% endif %}
 </div>

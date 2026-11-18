@@ -1,11 +1,13 @@
 {% extends "base.html" %}
+{% from "_icons.html" import ic %}
 {% block title %}Vẽ vùng{% endblock %}
 {% block heading %}Vẽ vùng camera{% endblock %}
 {% block content %}
-<p class="muted" style="margin-bottom:12px">Chọn ô để vẽ ô chuồng, máng ăn, vùng lạc chuồng và vật tham chiếu trên ảnh camera.</p>
+<p class="muted sec-desc-top">Chọn ô để vẽ vùng chuồng, máng ăn và vùng sổng chuồng trên ảnh camera</p>
+<div class="action-grid">
 {% for r in o %}
 <a class="card link action-card" href="/ve-vung/{{ r.ma }}">
-  <div class="action-card-icon" aria-hidden="true">📷</div>
+  <div class="action-card-icon" aria-hidden="true">{{ ic('camera', 18) }}</div>
   <div class="action-card-body">
     <b>{{ r.ten }}</b>
     <p class="hint">Thiết lập tọa độ đa giác tỉ lệ 0–1 cho AI</p>
@@ -15,5 +17,6 @@
   </span>
 </a>
 {% endfor %}
-<a class="more" href="/cai-dat">← Về cài đặt</a>
+</div>
+<a class="more" href="/cai-dat">{{ ic('arrow_left', 14) }}<span>Về cài đặt</span></a>
 {% endblock %}

@@ -8,34 +8,115 @@
   } catch (e) {}
 })();
 
+const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+const ICON_SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+const themeMedia = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+
+function isDarkTheme() {
+  const cur = document.documentElement.getAttribute("data-theme");
+  if (cur === "dark") return true;
+  if (cur === "light") return false;
+  return Boolean(themeMedia && themeMedia.matches);
+}
+
 const btnTheme = document.getElementById("btn-theme");
+function syncThemeButton() {
+  if (!btnTheme) return;
+  const dark = isDarkTheme();
+  btnTheme.setAttribute("aria-pressed", String(dark));
+  btnTheme.innerHTML = dark ? ICON_SUN : ICON_MOON;
+}
 if (btnTheme) {
+  syncThemeButton();
   btnTheme.addEventListener("click", () => {
-    const cur = document.documentElement.getAttribute("data-theme");
-    const sysDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const isDark = cur ? cur === "dark" : sysDark;
-    const next = isDark ? "light" : "dark";
+    const next = isDarkTheme() ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
     try { localStorage.setItem("tt_theme", next); } catch (e) {}
+    syncThemeButton();
   });
+  if (themeMedia && themeMedia.addEventListener) {
+    themeMedia.addEventListener("change", () => {
+      if (!document.documentElement.getAttribute("data-theme")) syncThemeButton();
+    });
+  }
 }
 
 // ---------- Lightbox phóng to ảnh sự kiện ----------
+const LIGHTBOX_SEL = ".ev-img, .banner img, .card.pig img";
 const lightbox = document.getElementById("lightbox");
 const lightboxImg = document.getElementById("lightbox-img");
+let lightboxTrigger = null;
+
+function enhanceLightboxImages(root = document) {
+  if (!root || !root.querySelectorAll) return;
+  root.querySelectorAll(LIGHTBOX_SEL).forEach(img => {
+    if (!img.hasAttribute("tabindex")) img.setAttribute("tabindex", "0");
+    if (!img.hasAttribute("role")) img.setAttribute("role", "button");
+  });
+}
+
+function openLightbox(img) {
+  if (!img || !lightbox || !lightboxImg) return;
+  lightboxTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : img;
+  lightboxImg.src = img.src;
+  lightboxImg.alt = img.alt || "Ảnh phóng to";
+  if (!lightbox.hasAttribute("tabindex")) lightbox.setAttribute("tabindex", "-1");
+  lightbox.hidden = false;
+  const closeBtn = lightbox.querySelector("button");
+  if (closeBtn) closeBtn.focus({preventScroll: true});
+  else lightbox.focus({preventScroll: true});
+}
+
+function closeLightbox() {
+  if (!lightbox || lightbox.hidden) return;
+  lightbox.hidden = true;
+  if (lightboxTrigger && lightboxTrigger.isConnected && typeof lightboxTrigger.focus === "function") {
+    lightboxTrigger.focus();
+  }
+  lightboxTrigger = null;
+}
+
+enhanceLightboxImages();
+if (document.body && typeof MutationObserver !== "undefined") {
+  new MutationObserver(muts => {
+    for (const m of muts) {
+      for (const n of m.addedNodes) {
+        if (n.nodeType !== 1) continue;
+        if (n.matches && n.matches(LIGHTBOX_SEL)) enhanceLightboxImages(n.parentElement || document);
+        else enhanceLightboxImages(n);
+      }
+    }
+  }).observe(document.body, {childList: true, subtree: true});
+}
+
 document.addEventListener("click", e => {
-  const img = e.target.closest(".ev-img, .banner img, .card.pig img");
+  const img = e.target.closest(LIGHTBOX_SEL);
   if (img && lightbox && lightboxImg) {
-    lightboxImg.src = img.src;
-    lightbox.hidden = false;
+    openLightbox(img);
     return;
   }
   if (lightbox && !lightbox.hidden && e.target.closest("#lightbox")) {
-    lightbox.hidden = true;
+    closeLightbox();
   }
 });
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape" && lightbox && !lightbox.hidden) lightbox.hidden = true;
+  if (e.key === "Escape" && lightbox && !lightbox.hidden) {
+    e.preventDefault();
+    closeLightbox();
+    return;
+  }
+  if (e.key === "Enter" || e.key === " ") {
+    const img = e.target.closest(LIGHTBOX_SEL);
+    if (img && lightbox && lightbox.hidden) {
+      e.preventDefault();
+      openLightbox(img);
+      return;
+    }
+    if (lightbox && !lightbox.hidden && e.target === lightbox) {
+      e.preventDefault();
+      closeLightbox();
+    }
+  }
 });
 
 // ---------- Tiện ích ----------
@@ -61,8 +142,30 @@ async function phanHoi(id, ph) {
   const {ok} = await api("POST", `/api/su-kien/${id}/phan-hoi`, {phan_hoi: ph});
   if (!ok) return false;
   document.querySelectorAll(`[data-ev="${id}"] .ev-actions`).forEach(el => {
-    el.outerHTML = `<div class="ev-actions done">${ph === "dung" ? "✔ Đã xác nhận đúng" : "✖ Đã báo nhầm"}</div>`;
+    el.outerHTML = `<div class="ev-actions done">${ph === "dung" ? "Đã xác nhận đúng" : "Đã báo nhầm"}</div>`;
   });
+  const msgs = document.getElementById("msgs");
+  const statSk = document.getElementById("stat-sk");
+  if (msgs || statSk) {
+    try {
+      const r = await fetch(location.href);
+      if (r.ok) {
+        const doc = new DOMParser().parseFromString(await r.text(), "text/html");
+        const newMsgs = doc.getElementById("msgs");
+        if (msgs && newMsgs) {
+          msgs.innerHTML = newMsgs.innerHTML;
+          enhanceLightboxImages(msgs);
+        }
+        const newStatSk = doc.getElementById("stat-sk");
+        if (statSk && newStatSk) {
+          statSk.textContent = newStatSk.textContent;
+          const wrap = statSk.closest("div");
+          const newWrap = newStatSk.closest("div");
+          if (wrap && newWrap) wrap.className = newWrap.className;
+        }
+      }
+    } catch (e) {}
+  }
   return true;
 }
 document.addEventListener("click", async e => {
@@ -90,15 +193,16 @@ function veBanner() {
   banner.dataset.ev = e.id;
   banner.hidden = false;
   banner.innerHTML = `
-    <div class="b-head"><b>${esc(e.ten_loai)}</b> · Ô ${esc(e.o)}
+    <div class="b-head"><b>${esc(e.ten_loai)}</b> · <span class="mono-tag">Ô ${esc(e.o)}</span>
       ${hangDoi.length > 1 ? `<span class="b-n">+${hangDoi.length - 1}</span>` : ""}
-      <button class="b-x" aria-label="Đóng" data-skip="${e.id}">✕</button></div>
-    <div class="b-sub">${esc(e.thoi_gian.slice(11, 16))} · ${esc(e.ten_muc)}</div>
+      <button type="button" class="b-x" aria-label="Đóng" data-skip="${e.id}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+    <div class="b-sub mono-num">${esc(e.thoi_gian.slice(11, 16))} · ${esc(e.ten_muc)}</div>
     ${e.anh ? `<img src="/${esc(e.anh)}" alt="Ảnh sự kiện">` : ""}
     <div class="ev-actions">
-      <button data-ph="dung" data-id="${e.id}">✔ Đúng</button>
-      <button data-ph="bao_nham" data-id="${e.id}">✖ Báo nhầm</button>
+      <button type="button" data-ph="dung" data-id="${e.id}">Đúng</button>
+      <button type="button" data-ph="bao_nham" data-id="${e.id}">Báo nhầm</button>
     </div>`;
+  enhanceLightboxImages(banner);
 }
 function skip(id) {
   hangDoi = hangDoi.filter(e => String(e.id) !== String(id));
@@ -125,11 +229,18 @@ if (banner) { veBanner(); hoi(); setInterval(hoi, 3000); }
 // Trang Sự kiện / Trang chủ tự làm mới nội dung (không tải lại cả trang nên banner không mất)
 document.addEventListener("co-su-kien-moi", async () => {
   if (!document.body.dataset.autoreload) return;
+  const boxThem = document.getElementById("box-them-o");
+  if (boxThem && !boxThem.hidden) return;
   const r = await fetch(location.href);
   if (!r.ok) return;
   const doc = new DOMParser().parseFromString(await r.text(), "text/html");
   const moi = doc.querySelector(".screen"), cu = document.querySelector(".screen");
-  if (moi && cu) cu.innerHTML = moi.innerHTML;
+  const curBox = document.getElementById("box-them-o");
+  if (curBox && !curBox.hidden) return;
+  if (moi && cu) {
+    cu.innerHTML = moi.innerHTML;
+    enhanceLightboxImages(cu);
+  }
 });
 
 // ---------- Trang Cài đặt ----------
@@ -179,6 +290,6 @@ if (form) {
     const {ok, data} = await api("PUT", "/api/cai-dat", body);
     const msg = document.getElementById("kq");
     msg.className = "kq " + (ok ? "ok" : "err");
-    msg.textContent = ok ? "✔ Đã lưu cài đặt hệ thống." : (data.loi || ["Lỗi"]).join("; ");
+    msg.textContent = ok ? "Đã lưu cài đặt hệ thống" : (data.loi || ["Lỗi"]).join("; ");
   });
 }

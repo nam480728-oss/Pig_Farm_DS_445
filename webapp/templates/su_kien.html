@@ -4,19 +4,26 @@
 {% block body_attr %}data-autoreload="1"{% endblock %}
 {% block content %}
 <div class="filters" aria-label="Lọc theo mức độ">
-  <a href="/su-kien{{ '?o=' ~ o_sel if o_sel else '' }}" class="{{ 'on' if not muc }}">Tất cả</a>
+  <a href="{{ url_for('su_kien', trang_thai=tt_sel or none, o=o_sel or none) }}" class="{{ 'on' if not muc }}">Tất cả</a>
   {% for k, v in MUC.items() %}
-  <a href="/su-kien?muc={{ k }}{{ '&o=' ~ o_sel if o_sel else '' }}" class="{{ 'on' if muc==k }}">{{ v }}</a>
+  <a href="{{ url_for('su_kien', muc=k, trang_thai=tt_sel or none, o=o_sel or none) }}" class="{{ 'on' if muc==k }}">{{ v }}</a>
   {% endfor %}
+</div>
+<div class="filters sub-filters" aria-label="Lọc theo trạng thái">
+  <a href="{{ url_for('su_kien', muc=muc or none, o=o_sel or none) }}" class="{{ 'on' if not tt_sel }}">Tất cả trạng thái</a>
+  <a href="{{ url_for('su_kien', muc=muc or none, trang_thai='moi', o=o_sel or none) }}" class="{{ 'on' if tt_sel=='moi' }}">Chưa xử lý</a>
 </div>
 {% if o_list %}
 <div class="filters sub-filters" aria-label="Lọc theo ô chuồng">
-  <a href="/su-kien{{ '?muc=' ~ muc if muc else '' }}" class="{{ 'on' if not o_sel }}">Mọi ô</a>
+  <a href="{{ url_for('su_kien', muc=muc or none, trang_thai=tt_sel or none) }}" class="{{ 'on' if not o_sel }}">Mọi ô</a>
   {% for ma_o in o_list %}
-  <a href="/su-kien?o={{ ma_o }}{{ '&muc=' ~ muc if muc else '' }}" class="{{ 'on' if o_sel==ma_o }}">Ô {{ ma_o }}</a>
+  <a href="{{ url_for('su_kien', muc=muc or none, trang_thai=tt_sel or none, o=ma_o) }}" class="{{ 'on' if o_sel==ma_o }}">Ô {{ ma_o }}</a>
   {% endfor %}
 </div>
 {% endif %}
-{% for e in rows %}{% include "_su_kien_item.html" %}
-{% else %}<p class="muted center">Chưa có sự kiện nào phù hợp bộ lọc.</p>{% endfor %}
+{% if rows %}
+<div class="events-grid">
+  {% for e in rows %}{% include "_su_kien_item.html" %}{% endfor %}
+</div>
+{% else %}<p class="muted center">Chưa có sự kiện nào phù hợp bộ lọc</p>{% endif %}
 {% endblock %}

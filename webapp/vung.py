@@ -10,12 +10,13 @@ Cấu trúc (khoá nào chưa vẽ thì không có):
   "lac_chuong": {"kieu": "vung", "diem": [[x,y], ...]}                 # vùng NGOÀI ô
              hoặc {"kieu": "vach", "diem": [[x,y],[x,y]], "diem_ngoai": [x,y]}  # vạch mức;
                                        # diem_ngoai = một điểm nằm ở phía ngoài vạch
-  "vat_tham_chieu": {"diem": [[x,y],[x,y]], "cm": 50.0}   # đoạn thẳng có độ dài thật (cm)
 }
 """
 import json
 
-KHOA = ("o", "mang_an", "lac_chuong", "vat_tham_chieu")
+import db
+
+KHOA = ("o", "mang_an", "lac_chuong")
 
 
 def _diem(p):
@@ -51,15 +52,6 @@ def kiem_tra(v):
             out["lac_chuong"] = {"kieu": "vach", "diem": lc["diem"], "diem_ngoai": lc["diem_ngoai"]}
         else:
             loi.append("Lạc chuồng: 'vung' cần ≥ 3 điểm; 'vach' cần 2 điểm + diem_ngoai")
-    vt = v.get("vat_tham_chieu")
-    if vt is not None:
-        d = vt.get("diem")
-        cm = vt.get("cm")
-        if (isinstance(d, list) and len(d) == 2 and all(_diem(p) for p in d)
-                and isinstance(cm, (int, float)) and cm > 0):
-            out["vat_tham_chieu"] = {"diem": d, "cm": float(cm)}
-        else:
-            loi.append("Vật tham chiếu: 2 điểm và độ dài cm > 0")
     return (out, loi) if not loi else (None, loi)
 
 
@@ -71,8 +63,9 @@ def doc(conn, ma):
 
 
 def luu(conn, ma, vung):
-    conn.execute("UPDATE o_chuong SET vung_json=? WHERE ma=?",
-                 (json.dumps(vung, ensure_ascii=False), ma))
+    v_str = json.dumps(vung, ensure_ascii=False)
+    conn.execute("UPDATE o_chuong SET vung_json=? WHERE ma=?", (v_str, ma))
+    db.sync_mysql("UPDATE o_chuong SET vung_json=%s WHERE ma=%s", (v_str, ma))
 
 
 def sang_pixel(vung, rong, cao):
@@ -85,10 +78,4 @@ def sang_pixel(vung, rong, cao):
         lc = vung["lac_chuong"]
         out["lac_chuong"] = {**lc, "diem": [p(x) for x in lc["diem"]]}
         if "diem_ngoai" in lc: out["lac_chuong"]["diem_ngoai"] = p(lc["diem_ngoai"])
-    if "vat_tham_chieu" in vung:
-        vt = vung["vat_tham_chieu"]
-        out["vat_tham_chieu"] = {"diem": [p(x) for x in vt["diem"]], "cm": vt["cm"]}
-        (x1, y1), (x2, y2) = out["vat_tham_chieu"]["diem"]
-        dai_px = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
-        out["vat_tham_chieu"]["cm_moi_pixel"] = round(vt["cm"] / dai_px, 4) if dai_px else None
     return out
