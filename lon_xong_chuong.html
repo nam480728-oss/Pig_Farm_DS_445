@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Giám sát lợn sổng chuồng</title>
+<style>
+:root{
+  --bg:#f4f6f3;
+  --panel:#fff;
+  --sub:#f8faf7;
+  --ink:#111c16;
+  --muted:#5c6c63;
+  --line:#e2e8e0;
+  --line2:#cdd7ca;
+  --brand:#1b7a43;
+  --brand-soft:#eaf5ee;
+  --brand-bd:#b8dfc6;
+  --cb:#d97706;
+  --cb-soft:#fffbeb;
+  --cb-bd:#fde68a;
+  --kc:#dc2626;
+  --kc-soft:#fef2f2;
+  --kc-bd:#fecaca;
+  --kc-ink:#991b1b;
+  --shadow:0 1px 2px rgba(17,28,22,.06),0 4px 14px rgba(17,28,22,.05);
+  color-scheme:light}
+[data-theme=dark]{
+  --bg:#0e1511;
+  --panel:#16201a;
+  --sub:#1b2720;
+  --ink:#e8efe9;
+  --muted:#93a69a;
+  --line:#25332a;
+  --line2:#33463a;
+  --brand:#34c370;
+  --brand-soft:#15291d;
+  --brand-bd:#235a38;
+  --cb:#f59e0b;
+  --cb-soft:#2a2210;
+  --cb-bd:#5a4514;
+  --kc:#f87171;
+  --kc-soft:#2b1415;
+  --kc-bd:#6b2224;
+  --kc-ink:#fecaca;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 20px;
+  background:var(--panel);
+  border-bottom:1px solid var(--line);
+  position:sticky;
+  top:0;
+  z-index:5}
+.logo{
+  width:32px;
+  height:32px;
+  border-radius:9px;
+  background:linear-gradient(135deg,#1b7a43,#146134);
+  display:grid;
+  place-items:center;
+  color:#fff;
+  font-size:17px}
+header h1{
+  font-size:15px;
+  margin:0;
+  font-weight:650;
+  letter-spacing:-.01em}
+header .sp{
+  flex:1}
+.live{
+  display:flex;
+  align-items:center;
+  gap:6px;font-size:12px;color:var(--muted)}  
+.dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--brand)}
+.dot.bad{background:var(--kc);
+  animation:pl 1s infinite}
+@keyframes pl{50%{opacity:.3}}
+main{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 340px;
+  gap:16px;
+  max-width:1280px;
+  margin:0 auto;
+  padding:16px 20px}
+@media(max-width:900px){
+  main{
+    grid-template-columns:1fr;
+    padding:12px}}
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  margin-bottom:14px}
+.card>h2{
+  font-size:12px;
+  font-weight:650;
+  color:var(--muted);
+  margin:0;
+  padding:12px 14px 0;
+  letter-spacing:.02em}
+.pad{
+  padding:12px 14px 14px}
+.bar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  padding:10px 12px;
+  border-bottom:1px solid var(--line)}
+.seg{
+  display:inline-flex;
+  background:var(--sub);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:3px}
+.seg button{
+  border:0;
+  background:transparent;
+  padding:6px 12px;
+  border-radius:7px;
+  color:var(--muted)}
+.seg button.on{
+  background:var(--panel);
+  color:var(--ink);
+  box-shadow:var(--shadow);
+  font-weight:600}
+button,input,textarea{
+  font:inherit;
+  color:inherit}
+button{
+  border:1px solid var(--line2);
+  background:var(--panel);
+  border-radius:9px;
+  padding:7px 12px;
+  cursor:pointer;
+  transition:border-color .15s,color .15s,background .15s}
+button:hover{
+  border-color:var(--brand);
+  color:var(--brand)}
+button.pri{
+  background:linear-gradient(135deg,#1b7a43,#146134);
+  color:#fff;
+  border-color:transparent}
+button.pri:hover{
+  color:#fff;
+  filter:brightness(1.1)}
+button.ic{
+  width:34px;
+  height:34px;
+  padding:0;
+  display:grid;
+  place-items:center}
+button:focus-visible,input:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--brand);
+  outline-offset:1px}
+.stage{
+  position:relative;
+  background:#1e2420;
+  border-radius:0 0 14px 14px;
+  overflow:hidden}
+canvas{
+  display:block;
+  width:100%;
+  touch-action:none;
+  cursor:crosshair}
+.vrow{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  padding:10px 12px;
+  border-top:1px solid var(--line)}
+.vrow input{
+  flex:1;
+  accent-color:var(--brand)}
+.banner{
+  display:none;
+  align-items:center;
+  gap:10px;
+  margin:12px;
+  padding:11px 14px;
+  border-radius:11px;
+  background:var(--kc-soft);
+  border:1px solid var(--kc-bd);
+  color:var(--kc-ink);
+  font-weight:600}
+.banner.show{
+  display:flex}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px}
+.stat{
+  border-radius:11px;
+  padding:10px 12px;
+  border:1px solid var(--line)}
+.stat b{
+  display:block;
+  font-size:22px;
+  line-height:1.1;
+  font-variant-numeric:tabular-nums}
+.stat span{
+  font-size:12px;
+  color:var(--muted)}
+.stat.t{
+  background:var(--brand-soft);
+  border-color:var(--brand-bd)}
+  .stat.t b{color:var(--brand)}
+.stat.c{
+  background:var(--cb-soft);
+  border-color:var(--cb-bd)}
+  .stat.c b{color:var(--cb)}
+.stat.n{
+  background:var(--kc-soft);
+  border-color:var(--kc-bd)}
+  .stat.n b{color:var(--kc)}
+.fld{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+  color:var(--muted)}
+input[type=number],input[type=text]{
+  width:84px;
+  border:1px solid var(--line2);
+  background:var(--sub);
+  border-radius:8px;
+  padding:6px 9px;
+  text-align:right}
+textarea{
+  width:100%;
+  border:1px solid var(--line2);
+  background:var(--sub);
+  border-radius:10px;
+  padding:8px 10px;
+  font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;
+  resize:vertical}
+.btns{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+  flex-wrap:wrap}
+.btns>*{flex:1}
+input[type=file]{
+  width:100%;
+  font-size:12px;
+  color:var(--muted)}
+body{
+  background:radial-gradient(1100px 480px at 85% -10%,rgba(27,122,67,.12),transparent 60%),var(--bg)}
+header{
+  background:color-mix(in srgb,var(--panel) 85%,transparent);
+  backdrop-filter:blur(10px)}
+.card>h2{
+  display:flex;
+  align-items:center;
+  gap:8px}
+.card>h2 i{
+  font-style:normal;
+  display:grid;
+  place-items:center;
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:var(--brand-soft);
+  color:var(--brand);
+  font-size:11px}
+.ttl{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:650;
+  font-size:13px;
+  flex:1
+}
+.stage{
+  min-height:220px
+}
+.drop{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  color:#c6d6cb;
+  cursor:pointer;
+  text-align:center;
+  background:radial-gradient(circle at 50% 40%,#2e3d33,#171e1a)}
+.drop[hidden]{
+  display:none
+}
+.drop b{
+  font-size:16px;
+  color:#fff}
+  .drop span{
+    font-size:12px;
+    opacity:.7}
+.filebtn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+  padding:11px;
+  border:1.5px dashed var(--line2);
+  border-radius:10px;
+  background:var(--sub);
+  color:var(--muted);
+  cursor:pointer;
+  font-size:13px;
+  transition:.15s}
+.filebtn:hover{
+  border-color:var(--brand);
+  color:var(--brand);
+  background:var(--brand-soft)}
+.stat{
+  transition:transform .15s
+}
+.stat:hover{
+  transform:translateY(-2px)
+}
+.banner{
+  animation:in .25s ease
+  }@keyframes in{from{opacity:0;transform:translateY(-4px)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🐖</div>
+  <h1>Giám sát lợn sổng chuồng</h1>
+  <div class="sp"></div>
+  <div class="live"><i class="dot" id="dot"></i><span id="lv">Bình thường</span></div>
+  <button class="ic" id="theme" aria-label="Đổi giao diện sáng tối" title="Sáng / tối"></button>
+</header>
+
+<main>
+  <section>
+    <div class="card">
+      <div class="bar">
+        <div class="ttl"><i class="dot" style="background:var(--brand)"></i>Khung chuồng</div>
+        <button type="button" id="b-xoachuong">Xoá khung</button>
+      </div>
+      <div class="stage"><canvas id="cv"></canvas>
+        <label class="drop" id="drop" for="file">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg>
+          <b>Chọn ảnh hoặc video chuồng</b><span>Sau đó kéo chuột trên hình để vẽ khung chuồng</span>
+        </label></div>
+      <div class="vrow" id="vrow" hidden>
+        <button type="button" id="b-play">Phát</button>
+        <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Tua video">
+      </div>
+      <div class="banner" id="bn"></div>
+    </div>
+  </section>
+
+  <aside>
+    <div class="card">
+      <h2>TRẠNG THÁI</h2>
+      <div class="pad"><div class="stats">
+        <div class="stat t"><b id="s-t">0</b><span>Trong chuồng</span></div>
+        <div class="stat c"><b id="s-c">0</b><span>Chạm vạch</span></div>
+        <div class="stat n"><b id="s-n">0</b><span>Ra hẳn</span></div>
+      </div></div>
+    </div>
+
+    <div class="card">
+      <h2><i>1</i>NGUỒN HÌNH</h2>
+      <div class="pad"><label class="filebtn" for="file" id="fn">Chọn ảnh / video</label><input type="file" id="file" accept="image/*,video/*" hidden></div>
+    </div>
+
+    <div class="card">
+      <h2><i>2</i>KẾT QUẢ YOLO</h2>
+      <div class="pad">
+        <textarea id="yolo" rows="4" placeholder='[[120,80,260,190],[400,210,520,300]]' aria-label="Dữ liệu YOLO"></textarea>
+        <div class="btns"><button type="button" class="pri" id="b-nap">Nạp kết quả</button></div>
+        <div class="btns"><label class="filebtn" for="yfile">Chọn file yolo.json</label><input type="file" id="yfile" accept=".json,.txt" hidden></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>CẤU HÌNH</h2>
+      <div class="pad">
+        <label class="fld">Mã ô <input type="text" id="ma" value="A"></label>
+        <label class="fld" style="margin:0">Ra hẳn liên tục (giây) <input type="number" id="thr" value="5" min="0"></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>SỰ KIỆN</h2>
+      <div class="pad">
+        <textarea id="ej" rows="6" readonly placeholder="Chưa có sự kiện" aria-label="Sự kiện"></textarea>
+        <div class="btns"><button type="button" data-c="ej">Sao chép sự kiện</button></div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const SUN='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+function datTheme(t){document.documentElement.dataset.theme=t;$("theme").innerHTML=t==="dark"?SUN:MOON;try{localStorage.setItem("theme",t)}catch{}}
+let t0=null;try{t0=localStorage.getItem("theme")}catch{}
+datTheme(t0||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
+$("theme").onclick=()=>datTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");
+
+const cv=$("cv"),ctx=cv.getContext("2d");
+const vid=document.createElement("video");vid.muted=true;vid.playsInline=true;vid.loop=true;
+let W=640,H=360,dpr=1,img=null,isVideo=false,mode="chuong";
+let pen=null,pigs=[],since=[],frames=null,fps=25,drag=null,evName="";
+const natW=()=>isVideo?vid.videoWidth:img?img.naturalWidth:640,natH=()=>isVideo?vid.videoHeight:img?img.naturalHeight:360;
+const clock=()=>isVideo?vid.currentTime:performance.now()/1000;
+function setSize(){
+  W=cv.parentElement.clientWidth||640;H=Math.round(W*natH()/natW());dpr=window.devicePixelRatio||1;
+  cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.height=H+"px";
+}
+$("file").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const u=URL.createObjectURL(f);since=[];$('drop').hidden=true;$('fn').textContent=f.name;
+  if(f.type.startsWith("video")){isVideo=true;img=null;vid.src=u;vid.onloadedmetadata=()=>{setSize();$("vrow").hidden=false;vid.currentTime=0}}
+  else{isVideo=false;$("vrow").hidden=true;vid.pause();const i=new Image();i.onload=()=>{img=i;setSize()};i.src=u}
+};
+$("b-play").onclick=()=>{if(vid.paused){vid.play();$("b-play").textContent="Dừng"}else{vid.pause();$("b-play").textContent="Phát"}};
+$("seek").oninput=e=>{if(vid.duration)vid.currentTime=vid.duration*e.target.value/1000};
+addEventListener("resize",setSize);
+
+const norm=(a,b)=>({x1:Math.min(a[0],b[0]),y1:Math.min(a[1],b[1]),x2:Math.max(a[0],b[0]),y2:Math.max(a[1],b[1])});
+const trong=(p,b)=>b&&p[0]>=b.x1&&p[0]<=b.x2&&p[1]>=b.y1&&p[1]<=b.y2;
+const goc=b=>[[b.x1,b.y1],[b.x2,b.y1],[b.x2,b.y2],[b.x1,b.y2]];
+const px=p=>[p[0]*W,p[1]*H];
+function trangThai(p){
+  if(!pen)return"trong";
+  const ng=goc(p).filter(c=>!trong(c,pen)).length;
+  const ov=Math.min(p.x2,pen.x2)>Math.max(p.x1,pen.x1)&&Math.min(p.y2,pen.y2)>Math.max(p.y1,pen.y1);
+  return ng===0?"trong":(ng===4&&!ov?"ngoai":"cham");
+}
+
+const pt=e=>{const r=cv.getBoundingClientRect();return[Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))]};
+function gocGan(p){
+  if(!pen)return null;const cs=goc(pen);
+  for(let i=0;i<4;i++){const[a,b]=px(cs[i]),[c,d]=px(p);if(Math.hypot(a-c,b-d)<=16)return cs[(i+2)%4]}
+  return null;
+}
+cv.onpointerdown=e=>{
+  const p=pt(e);cv.setPointerCapture(e.pointerId);
+  const o=gocGan(p);
+  if(o)drag={t:"rs",o};
+  else if(trong(p,pen))drag={t:"mv",p0:p,b:{...pen}};
+  else{drag={t:"new",p0:p};pen=norm(p,p)}
+};
+cv.onpointermove=e=>{
+  if(!drag)return;const p=pt(e);
+  if(drag.t==="new")pen=norm(drag.p0,p);
+  else if(drag.t==="rs")pen=norm(drag.o,p);
+  else if(drag.t==="mv"){
+    const b=drag.b,cx=Math.max(-b.x1,Math.min(1-b.x2,p[0]-drag.p0[0])),cy=Math.max(-b.y1,Math.min(1-b.y2,p[1]-drag.p0[1]));
+    pen={x1:b.x1+cx,y1:b.y1+cy,x2:b.x2+cx,y2:b.y2+cy};
+  }
+};
+cv.onpointerup=cv.onpointercancel=()=>{if(drag&&pen&&(pen.x2-pen.x1<.02||pen.y2-pen.y1<.02))pen=null;drag=null};
+$("b-xoachuong").onclick=()=>{pen=null};
+
+function parse(t){
+  t=t.trim();if(!t)return null;let d;
+  try{d=JSON.parse(t)}catch{
+    const rows=t.split(/\n/).map(l=>l.trim().split(/\s+/).map(Number)).filter(r=>r.length>=5&&r.every(Number.isFinite));
+    return{boxes:rows.map(r=>({x1:r[1]-r[3]/2,y1:r[2]-r[4]/2,x2:r[1]+r[3]/2,y2:r[2]+r[4]/2}))};
+  }
+  const nw=natW(),nh=natH();
+  const one=a=>(a||[]).map(b=>{
+    let v=Array.isArray(b)?b:(b.xyxy||b.box||[b.x1,b.y1,b.x2,b.y2]);
+    if(v&&!Array.isArray(v))v=[v.x1,v.y1,v.x2,v.y2];
+    v=(v||[]).map(Number);if(v.length!==4||v.some(isNaN))return null;
+    return v.every(x=>x<=1.5)?{x1:v[0],y1:v[1],x2:v[2],y2:v[3]}:{x1:v[0]/nw,y1:v[1]/nh,x2:v[2]/nw,y2:v[3]/nh};
+  }).filter(Boolean);
+  if(Array.isArray(d))return{boxes:one(d)};
+  if(d.frames){fps=d.fps||25;const fr=[];
+    if(Array.isArray(d.frames))d.frames.forEach((f,i)=>fr[i]=one(f));else Object.keys(d.frames).forEach(k=>fr[+k]=one(d.frames[k]));
+    return{frames:fr}}
+  return{boxes:one(d.boxes)};
+}
+function nap(t){
+  let r;try{r=parse(t)}catch{r=null}
+  if(!r){$("yolo").style.borderColor="var(--kc)";return}
+  $("yolo").style.borderColor="";since=[];
+  if(r.frames){frames=r.frames;if(!isVideo)pigs=(frames[0]||[]).map(b=>({...b}))}else{frames=null;pigs=r.boxes}
+}
+$("b-nap").onclick=()=>nap($("yolo").value);
+$("yfile").onchange=async e=>{const f=e.target.files[0];if(f){const t=await f.text();$("yolo").value=t.slice(0,200000);nap(t)}};
+
+const MAU={trong:"#10b981",cham:"#f59e0b",ngoai:"#ef4444"},TEN={trong:"Trong",cham:"Chạm vạch",ngoai:"Ra hẳn"};
+function nhan(x,y,t,c){
+  ctx.font="600 11px Inter,system-ui,sans-serif";const w=ctx.measureText(t).width+12;
+  ctx.fillStyle=c;ctx.beginPath();(ctx.roundRect?ctx.roundRect(x,Math.max(0,y-19),w,19,5):ctx.rect(x,Math.max(0,y-19),w,19));ctx.fill();
+  ctx.fillStyle="#fff";ctx.fillText(t,x+6,Math.max(14,y-6));
+}
+function khung(){
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  if(isVideo&&vid.readyState>=2)ctx.drawImage(vid,0,0,W,H);
+  else if(img)ctx.drawImage(img,0,0,W,H);
+  else{ctx.fillStyle="#26312a";ctx.fillRect(0,0,W,H);ctx.fillStyle="#9fb3a6";ctx.font="14px Inter,system-ui,sans-serif";ctx.textAlign="center";ctx.fillText("Chọn ảnh hoặc video chuồng ở mục Nguồn hình",W/2,H/2);ctx.textAlign="start"}
+  if(isVideo&&frames)pigs=(frames[Math.floor(vid.currentTime*fps)]||[]).map(b=>({...b}));
+  if(pen){
+    const[a,b]=px([pen.x1,pen.y1]),[c,d]=px([pen.x2,pen.y2]);
+    ctx.fillStyle="rgba(16,185,129,.14)";ctx.fillRect(a,b,c-a,d-b);
+    ctx.strokeStyle=MAU.trong;ctx.lineWidth=2.5;ctx.setLineDash([8,5]);ctx.strokeRect(a,b,c-a,d-b);ctx.setLineDash([]);
+    goc(pen).map(px).forEach(([x,y])=>{ctx.beginPath();ctx.arc(x,y,5,0,7);ctx.fillStyle=MAU.trong;ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1.5;ctx.stroke()});
+    nhan(a,b,"Chuồng",MAU.trong);
+  }
+  const t=clock(),thr=+$("thr").value||0,ra=[],n={trong:0,cham:0,ngoai:0};
+  pigs.forEach((g,i)=>{
+    const st=trangThai(g);n[st]++;let s="";
+    if(st==="ngoai"){if(since[i]==null||t<since[i])since[i]=t;const sec=t-since[i];s=" "+Math.floor(sec)+"s";if(sec>=thr)ra.push({i,sec,g})}else since[i]=null;
+    const[a,b]=px([g.x1,g.y1]),[c,d]=px([g.x2,g.y2]);
+    if(st==="ngoai"){ctx.fillStyle="rgba(239,68,68,.18)";ctx.fillRect(a,b,c-a,d-b)}ctx.strokeStyle=MAU[st];ctx.lineWidth=st==="ngoai"?4:2.5;ctx.strokeRect(a,b,c-a,d-b);
+    nhan(a,b,"#"+(i+1)+" "+TEN[st]+s,MAU[st]);
+  });
+  $("s-t").textContent=n.trong;$("s-c").textContent=n.cham;$("s-n").textContent=n.ngoai;
+  const bn=$("bn");
+  if(ra.length){
+    bn.className="banner show";bn.textContent="Phát hiện lợn sổng chuồng: "+ra.map(r=>"#"+(r.i+1)).join(", ");
+    $("dot").className="dot bad";$("lv").textContent="Cảnh báo";
+    const r0=ra[0];if(!evName)evName="lac_"+Date.now();
+    const ev={loai:"lac_chuong",o:$("ma").value||"A",thoi_gian:new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,19),muc:"khan_cap",anh:"recordings/su_kien/"+evName+".png",du_lieu:{id_theo_doi:r0.i+1,giay_ngoai:Math.round(r0.sec),hop:[r0.g.x1,r0.g.y1,r0.g.x2,r0.g.y2].map(v=>+v.toFixed(4))}};
+    const s=JSON.stringify(ev,null,2);if($("ej").value!==s)$("ej").value=s;
+  }else{bn.className="banner";evName="";$("dot").className="dot";$("lv").textContent="Bình thường"}
+  if(isVideo&&vid.duration&&!vid.paused)$("seek").value=vid.currentTime/vid.duration*1000;
+  requestAnimationFrame(khung);
+}
+setSize();requestAnimationFrame(khung);
+
+document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{
+  const el=$(b.dataset.c);el.select();
+  (navigator.clipboard?navigator.clipboard.writeText(el.value):Promise.reject()).catch(()=>document.execCommand("copy"));
+  const t=b.textContent;b.textContent="Đã chép";setTimeout(()=>b.textContent=t,1200);
+});
+</script>
+</body>
+</html>
