@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Giám sát lợn sổng chuồng</title>
+<style>
+:root{
+  --bg:#f4f6f3;
+  --panel:#fff;
+  --sub:#f8faf7;
+  --ink:#111c16;
+  --muted:#5c6c63;
+  --line:#e2e8e0;
+  --line2:#cdd7ca;
+  --brand:#1b7a43; 
+  --brand-soft:#eaf5ee;
+  --brand-bd:#b8dfc6;
+  --kc:#dc2626;
+  --kc-soft:#fef2f2;
+  --kc-bd:#fecaca;
+  --kc-ink:#991b1b;
+  --shadow:0 1px 2px rgba(17,28,22,.06),0 4px 14px rgba(17,28,22,.05);
+  color-scheme:light
+}
+[data-theme=dark]{
+  --bg:#0e1511;
+  --panel:#16201a;
+  --sub:#1b2720;
+  --ink:#e8efe9;
+  --muted:#93a69a;
+  --line:#25332a;
+  --line2:#33463a;
+  --brand:#34c370;
+  --brand-soft:#15291d;
+  --brand-bd:#235a38;
+  --kc:#f87171;
+  --kc-soft:#2b1415;
+  --kc-bd:#6b2224;
+  --kc-ink:#fecaca;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:radial-gradient(1100px 480px at 85% -10%,rgba(27,122,67,.12),transparent 60%),var(--bg);
+  color:var(--ink);
+  font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased
+}
+header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 20px;
+  background:color-mix(in srgb,var(--panel) 85%,transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  position:sticky;
+  top:0;
+  z-index:5
+}
+.logo{
+  width:32px;
+  height:32px;
+  border-radius:9px;
+  background:linear-gradient(135deg,#1b7a43,#146134);
+  display:grid;
+  place-items:center;
+  color:#fff;
+  font-size:17px
+}
+header h1{
+  font-size:15px;
+  margin:0;
+  font-weight:650;
+  letter-spacing:-.01em
+}
+.sp{flex:1}
+.live{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  color:var(--muted)
+}
+.dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--brand);
+  display:inline-block
+}
+.dot.bad{
+  background:var(--kc);
+  animation:pl 1s infinite
+}
+@keyframes pl{50%{opacity:.3}}
+main{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 340px;
+  gap:16px;
+  max-width:1280px;
+  margin:0 auto;
+  padding:16px 20px
+}
+@media(max-width:900px){
+  main{
+    grid-template-columns:1fr;
+    padding:12px
+  }
+}
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  margin-bottom:14px
+}
+.card>h2{
+  font-size:12px;
+  font-weight:650;
+  color:var(--muted);
+  margin:0;
+  padding:12px 14px 0;
+  letter-spacing:.02em;
+  display:flex;
+  align-items:center;
+  gap:8px
+}
+.card>h2 i{
+  font-style:normal;
+  display:grid;
+  place-items:center;
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:var(--brand-soft);
+  color:var(--brand);
+  font-size:11px
+}
+.pad{padding:12px 14px 14px}
+.bar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  padding:10px 12px;
+  border-bottom:1px solid var(--line)
+}
+.ttl{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:650;
+  font-size:13px;
+  flex:1
+}
+button,input,textarea{
+  font:inherit;
+  color:inherit
+}
+button{
+  border:1px solid var(--line2);
+  background:var(--panel);
+  border-radius:9px;
+  padding:7px 12px;
+  cursor:pointer;
+  transition:.15s
+}
+button:hover{
+  border-color:var(--brand);
+  color:var(--brand)
+}
+button.pri{
+  background:var(--brand-soft);
+  border-color:var(--brand-bd);
+  color:var(--brand);
+  font-weight:600
+}
+button.pri:hover{
+  background:var(--brand);
+  border-color:var(--brand);
+  color:#fff
+}
+button[hidden]{display:none}
+button.ic{
+  width:34px;
+  height:34px;
+  padding:0;
+  display:grid;
+  place-items:center
+}
+:focus-visible{
+  outline:2px solid var(--brand);
+  outline-offset:1px
+}
+.stage{
+  position:relative;
+  background:#1e2420;
+  border-radius:0 0 14px 14px;
+  overflow:hidden;
+  min-height:220px
+}
+canvas{
+  display:block;
+  width:100%;
+  touch-action:none;
+  cursor:crosshair
+}
+.drop{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  color:#c6d6cb;
+  cursor:pointer;
+  text-align:center;
+  background:radial-gradient(circle at 50% 40%,#2e3d33,#171e1a)
+}
+.drop[hidden]{display:none}
+.drop b{font-size:16px;color:#fff}
+.drop span{font-size:12px;opacity:.7;padding:0 16px}
+.vrow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  padding:10px 12px;
+  border-top:1px solid var(--line)
+}
+.vrow[hidden]{display:none}
+.vrow input[type=range]{flex:1;min-width:120px;accent-color:var(--brand)}
+.banner{
+  display:none;
+  align-items:center;
+  gap:10px;
+  margin:12px;
+  padding:11px 14px;
+  border-radius:11px;
+  background:var(--kc-soft);
+  border:1px solid var(--kc-bd);
+  color:var(--kc-ink);
+  font-weight:600;
+  animation:in .25s ease
+}
+.banner.show{display:flex}
+@keyframes in{from{opacity:0;transform:translateY(-4px)}}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px
+}
+.stat{
+  border-radius:11px;
+  padding:12px 14px;
+  border:1px solid var(--line);
+  transition:transform .15s
+}
+.stat:hover{transform:translateY(-2px)}
+.stat b{
+  display:block;
+  font-size:24px;
+  line-height:1.1;
+  font-variant-numeric:tabular-nums
+}
+.stat span{font-size:12px;color:var(--muted)}
+.stat.t{background:var(--brand-soft);border-color:var(--brand-bd)}
+.stat.t b{color:var(--brand)}
+.stat.n{background:var(--kc-soft);border-color:var(--kc-bd)}
+.stat.n b{color:var(--kc)}
+.kv{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:7px 0;
+  border-top:1px solid var(--line);
+  color:var(--muted);
+  font-size:13px
+}
+.kv b{
+  color:var(--ink);
+  font-variant-numeric:tabular-nums;
+  font-weight:600
+}
+.ds{
+  margin:0 0 8px;
+  padding:0;
+  list-style:none;
+  font-size:13px
+}
+.ds:empty{display:none}
+.ds li{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:6px 0;
+  border-bottom:1px solid var(--line)
+}
+.ds li b{color:var(--kc)}
+.ds li span{color:var(--muted);font-variant-numeric:tabular-nums}
+.fld{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+  color:var(--muted)
+}
+input[type=number],input[type=text]{
+  width:84px;
+  border:1px solid var(--line2);
+  background:var(--sub);
+  border-radius:8px;
+  padding:6px 9px;
+  text-align:right
+}
+textarea{
+  width:100%;
+  border:1px solid var(--line2);
+  background:var(--sub);
+  border-radius:10px;
+  padding:8px 10px;
+  font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;
+  resize:vertical
+}
+.btns{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+  flex-wrap:wrap
+}
+.btns>*{flex:1}
+.filebtn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+  padding:11px;
+  border:1.5px dashed var(--line2);
+  border-radius:10px;
+  background:var(--sub);
+  color:var(--muted);
+  cursor:pointer;
+  font-size:13px;
+  transition:.15s;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis
+}
+.filebtn:hover{
+  border-color:var(--brand);
+  color:var(--brand);
+  background:var(--brand-soft)
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🐖</div>
+  <h1>Giám sát lợn sổng chuồng</h1>
+  <div class="sp"></div>
+  <div class="live"><i class="dot" id="dot"></i><span id="lv">Bình thường</span></div>
+  <button class="ic" id="theme" aria-label="Đổi giao diện sáng tối" title="Sáng / tối"></button>
+</header>
+
+<main>
+  <section>
+    <div class="card">
+      <div class="bar">
+        <div class="ttl"><i class="dot"></i>Khung chuồng</div>
+        <button type="button" id="b-khepkhung" class="pri" hidden>Khép khung</button>
+        <button type="button" id="b-khungmau" class="pri" title="Bấm nhiều lần để đổi góc camera xéo">Tạo khung</button>
+        <button type="button" id="b-xoachuong">Xoá khung</button>
+      </div>
+      <div class="stage"><canvas id="cv"></canvas>
+        <label class="drop" id="drop" for="file">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg>
+          <b>Chọn ảnh hoặc video chuồng</b>
+          <span>Nhấn vào đây hoặc chọn ở mục Nguồn hình bên phải</span>
+        </label>
+      </div>
+      <div class="vrow" id="vrow" hidden>
+        <button type="button" id="b-play">Phát</button>
+        <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Tua video">
+      </div>
+      <div class="banner" id="bn"></div>
+    </div>
+  </section>
+  <aside>
+    <div class="card">
+      <h2>TRẠNG THÁI</h2>
+      <div class="pad"><div class="stats">
+        <div class="stat t"><b id="s-t">0</b><span>Trong chuồng</span></div>
+        <div class="stat n"><b id="s-n">0</b><span>Ra ngoài</span></div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="kv"><span>Chuồng (mã ô)</span><b id="s-ma">A</b></div>
+        <div class="kv"><span>Tổng số con</span><b id="s-tong">0</b></div>
+        <div class="kv"><span>Cập nhật lúc</span><b id="s-up">--:--:--</b></div>
+        <div class="kv"><span>Cảnh báo gần nhất</span><b id="s-cb">Chưa có</b></div>
+      </div></div>
+    </div>
+
+    <div class="card">
+      <h2><i>1</i>NGUỒN HÌNH</h2>
+      <div class="pad"><label class="filebtn" for="file" id="fn">Chọn ảnh / video</label><input type="file" id="file" accept="image/*,video/*" hidden></div>
+    </div>
+
+    <div class="card">
+      <h2>CẤU HÌNH</h2>
+      <div class="pad">
+        <label class="fld" style="margin:0">Mã ô <input type="text" id="ma" value="A"></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>SỰ KIỆN</h2>
+      <div class="pad">
+        <ul class="ds" id="ds"></ul>
+        <textarea id="ej" rows="6" readonly placeholder="Chưa có sự kiện" aria-label="Sự kiện"></textarea>
+        <div class="btns"><button type="button" data-c="ej">Sao chép sự kiện</button><button type="button" id="b-xoacb">Xoá cảnh báo</button></div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<script>
+const API=location.pathname==="/app"?location.origin:"http://127.0.0.1:8000";
+const $=id=>document.getElementById(id);
+const SUN='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+function datTheme(t){document.documentElement.dataset.theme=t;$("theme").innerHTML=t==="dark"?SUN:MOON;try{localStorage.setItem("theme",t)}catch{}}
+let t0=null;try{t0=localStorage.getItem("theme")}catch{}
+datTheme(t0||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
+$("theme").onclick=()=>datTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");
+
+const cv=$("cv"),ctx=cv.getContext("2d");
+const vid=document.createElement("video");vid.muted=true;vid.playsInline=true;vid.loop=true;
+let W=640,H=360,dpr=1,img=null,isVideo=false;
+let pen=null,pigs=[],drag=null,hover=null,offline=false,errMsg="",got=-1;
+let srcId=0,needReset=true,lastKey=null,prevVidTime=0,mauIdx=0,pingMs=0,lastFrameTs=0;
+
+const XAC_NHAN_MS=500;
+const XAC_NHAN_VE_MS=1500;
+const MAT_ID_MS=1500;
+const lac=new Map();
+const demRa=new Map();
+const demVao=new Map();
+const lastSeen=new Map();
+const logSK=[];
+let capNhatLuc=null;
+const hms=d=>d.toLocaleTimeString("vi-VN",{hour12:false});
+
+function luuKhung(){
+  try{
+    if(pen&&pen.closed&&Array.isArray(pen.pts)&&pen.pts.length>=3){
+      localStorage.setItem("pig_pen",JSON.stringify(pen));
+    }else{
+      localStorage.removeItem("pig_pen");
+    }
+  }catch{}
+}
+function taiKhung(){
+  try{
+    const raw=localStorage.getItem("pig_pen");
+    if(raw){
+      const obj=JSON.parse(raw);
+      if(obj&&obj.closed&&Array.isArray(obj.pts)&&obj.pts.length>=3)pen=obj;
+    }
+    const ma=localStorage.getItem("pig_ma");
+    if(ma!==null)$("ma").value=ma;
+  }catch{}
+}
+$("ma").oninput=()=>{try{localStorage.setItem("pig_ma",$("ma").value)}catch{}};
+
+function veDS(){
+  $("ds").innerHTML=logSK.map(e=>{
+    const t=e.thoi_gian.split("T");
+    return'<li><b>#'+e.du_lieu.id_theo_doi+' sổng chuồng</b><span>'+t[1]+' · '+t[0].split("-").reverse().join("/")+'</span></li>';
+  }).join("");
+}
+function xoaCanhBao(){
+  lac.clear();
+  demRa.clear();
+  demVao.clear();
+  lastSeen.clear();
+  logSK.length=0;
+  $("ej").value="";
+  veDS();
+}
+
+const natW=()=>isVideo?vid.videoWidth:img?img.naturalWidth:640;
+const natH=()=>isVideo?vid.videoHeight:img?img.naturalHeight:360;
+function setSize(){
+  W=cv.parentElement.clientWidth||640;
+  H=Math.round(W*natH()/natW());
+  dpr=window.devicePixelRatio||1;
+  cv.width=Math.round(W*dpr);
+  cv.height=Math.round(H*dpr);
+  cv.style.height=H+"px";
+}
+function nguonMoi(){srcId++;needReset=true;lastKey=null;prevVidTime=0;pigs=[];xoaCanhBao()}
+
+$("file").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const u=URL.createObjectURL(f);
+  nguonMoi();
+  $("drop").hidden=true;
+  $("fn").textContent=f.name;
+  $("b-play").textContent="Phát";
+  if(f.type.startsWith("video")){
+    isVideo=true;img=null;vid.src=u;
+    vid.onloadedmetadata=()=>{setSize();$("vrow").hidden=false;vid.currentTime=0};
+  }else{
+    isVideo=false;$("vrow").hidden=true;vid.pause();
+    const i=new Image();i.onload=()=>{img=i;setSize()};i.src=u;
+  }
+};
+$("b-play").onclick=()=>{
+  if(vid.paused){vid.play();$("b-play").textContent="Dừng"}
+  else{vid.pause();$("b-play").textContent="Phát"}
+};
+$("seek").oninput=e=>{
+  if(vid.duration)vid.currentTime=vid.duration*e.target.value/1000;
+};
+vid.onseeked=()=>{
+  prevVidTime=vid.currentTime;
+  needReset=true;
+  lastKey=null;
+  pigs=[];
+  xoaCanhBao();
+};
+addEventListener("resize",setSize);
+
+const px=p=>[p[0]*W,p[1]*H];
+const dpx=(a,b)=>Math.hypot((a[0]-b[0])*W,(a[1]-b[1])*H);
+function inPoly(p){
+  const v=pen.pts;let c=false;
+  for(let i=0,j=v.length-1;i<v.length;j=i++){
+    const[xi,yi]=v[i],[xj,yj]=v[j];
+    if((yi>p[1])!==(yj>p[1])&&p[0]<(xj-xi)*(p[1]-yi)/(yj-yi)+xi)c=!c;
+  }
+  return c;
+}
+
+const tamBox=p=>[(p.x1+p.x2)*0.5,(p.y1+p.y2)*0.5];
+const tamBoxThat=p=>[((p.tx1??p.x1)+(p.tx2??p.x2))*0.5,((p.ty1??p.y1)+(p.ty2??p.y2))*0.5];
+function trangThai(p){
+  if(!pen||!pen.closed)return"trong";
+  return inPoly(tamBoxThat(p))?"trong":"ngoai";
+}
+
+function xuLy(){
+  if(drag)return;
+  const now=performance.now();
+  pigs.forEach(g=>{
+    if(g.id==null)return;
+    const k=g.id;
+    lastSeen.set(k,now);
+    const st=trangThai(g);
+    if(lac.has(k)){
+      if(st==="trong"){
+        if(!demVao.has(k))demVao.set(k,now);
+        if(now-demVao.get(k)>=XAC_NHAN_VE_MS){
+          lac.delete(k);
+          demVao.delete(k);
+          demRa.delete(k);
+        }
+      }else{
+        demVao.delete(k);
+      }
+      return;
+    }
+    if(st==="trong"){
+      demRa.delete(k);
+      demVao.delete(k);
+      return;
+    }
+    if(!demRa.has(k)){
+      demRa.set(k,now);
+    }
+    if(now-demRa.get(k)>=XAC_NHAN_MS){
+      const hopThat=[
+        g.tx1??g.x1,
+        g.ty1??g.y1,
+        g.tx2??g.x2,
+        g.ty2??g.y2
+      ].map(v=>+v.toFixed(4));
+
+      const ev={
+        loai:"lac_chuong",
+        o:$("ma").value||"A",
+        thoi_gian:new Date(
+          Date.now()-new Date().getTimezoneOffset()*6e4
+        ).toISOString().slice(0,19),
+        muc:"khan_cap",
+        du_lieu:{
+          id_theo_doi:k,
+          hop:hopThat
+        }
+      };
+
+      lac.set(k,ev);
+      logSK.push(ev);
+      veDS();
+      $("ej").value=logSK.map(e=>JSON.stringify(e,null,2)).join("\n");
+      guiSuKien(ev);
+    }
+  });
+
+  lastSeen.forEach((t,k)=>{
+    if(now-t>MAT_ID_MS){
+      lastSeen.delete(k);
+      demRa.delete(k);
+      demVao.delete(k);
+    }
+  });
+}
+
+function distSeg(p,a,b){
+  const[px_,py_]=[p[0]*W,p[1]*H],[ax,ay]=[a[0]*W,a[1]*H],[bx,by]=[b[0]*W,b[1]*H];
+  const dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy||1;
+  const t=Math.max(0,Math.min(1,((px_-ax)*dx+(py_-ay)*dy)/l2));
+  return{d:Math.hypot(px_-(ax+t*dx),py_-(ay+t*dy)),pt:[(ax+t*dx)/W,(ay+t*dy)/H]};
+}
+const dinhGan=p=>{
+  if(!pen)return-1;
+  for(let i=0;i<pen.pts.length;i++)if(dpx(p,pen.pts[i])<=14)return i;
+  return-1;
+};
+const pt=e=>{
+  const r=cv.getBoundingClientRect();
+  return[
+    Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),
+    Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))
+  ];
+};
+function dongKhung(){
+  if(pen&&!pen.closed&&pen.pts.length>=3){
+    pen.closed=true;
+    luuKhung();
+  }
+}
+
+const KHUNG_MAU=[
+  [[0.28,0.20],[0.72,0.20],[0.92,0.86],[0.08,0.86]],
+  [[0.50,0.14],[0.91,0.44],[0.52,0.88],[0.09,0.52]],
+  [[0.34,0.18],[0.86,0.28],[0.74,0.88],[0.12,0.74]]
+];
+function taoKhungMau(){
+  const goc4=KHUNG_MAU[mauIdx%KHUNG_MAU.length];
+  mauIdx++;
+  const pts=[];
+  for(let i=0;i<4;i++){
+    const a=goc4[i],b=goc4[(i+1)%4];
+    pts.push([...a],[(a[0]+b[0])/2,(a[1]+b[1])/2]);
+  }
+  pen={closed:true,pts};
+  drag=null;
+  lac.clear();
+  demRa.clear();
+  demVao.clear();
+  lastSeen.clear();
+  luuKhung();
+}
+cv.onpointerdown=e=>{
+  const p=pt(e);cv.setPointerCapture(e.pointerId);
+  if(!pen||!pen.closed){
+    if(!pen)pen={pts:[],closed:false};
+    const v=pen.pts;
+    if(v.length>=3&&dpx(p,v[0])<=14){pen.closed=true;luuKhung();return}
+    if(!v.length||dpx(p,v[v.length-1])>6)v.push(p);
+    return;
+  }
+  const i=dinhGan(p);
+  if(i>=0)drag={t:"v",i};
+  else if(inPoly(p))drag={t:"mv",p0:p,pts:pen.pts.map(q=>[...q])};
+};
+cv.onpointermove=e=>{
+  const p=pt(e);hover=p;
+  if(!drag)return;
+  if(drag.t==="v")pen.pts[drag.i]=p;
+  else if(drag.t==="mv"){
+    const xs=drag.pts.map(q=>q[0]),ys=drag.pts.map(q=>q[1]);
+    const dx=Math.max(-Math.min(...xs),Math.min(1-Math.max(...xs),p[0]-drag.p0[0]));
+    const dy=Math.max(-Math.min(...ys),Math.min(1-Math.max(...ys),p[1]-drag.p0[1]));
+    pen.pts=drag.pts.map(q=>[q[0]+dx,q[1]+dy]);
+  }
+};
+cv.onpointerup=cv.onpointercancel=()=>{if(drag){drag=null;luuKhung()}};
+cv.onpointerleave=()=>{hover=null};
+cv.ondblclick=e=>{
+  const p=pt(e);
+  if(!pen)return;
+  if(!pen.closed){dongKhung();return}
+  const i=dinhGan(p);
+  if(i>=0){if(pen.pts.length>3){pen.pts.splice(i,1);luuKhung()}return}
+  const v=pen.pts;let best=null;
+  for(let k=0;k<v.length;k++){
+    const r=distSeg(p,v[k],v[(k+1)%v.length]);
+    if(r.d<=10&&(!best||r.d<best.d))best={d:r.d,k,pt:r.pt};
+  }
+  if(best){v.splice(best.k+1,0,best.pt);luuKhung()}
+};
+$("b-khepkhung").onclick=dongKhung;
+$("b-khungmau").onclick=taoKhungMau;
+$("b-xoachuong").onclick=()=>{pen=null;drag=null;mauIdx=0;luuKhung();xoaCanhBao()};
+$("b-xoacb").onclick=xoaCanhBao;
+
+const grab=document.createElement("canvas");
+const gctx=grab.getContext("2d");
+
+async function detect() {
+  const nw = natW(), nh = natH(), s = Math.min(1, 640 / nw);
+  const gw = Math.round(nw * s), gh = Math.round(nh * s);
+  if (grab.width !== gw || grab.height !== gh) {
+    grab.width = gw;
+    grab.height = gh;
+  }
+  gctx.drawImage(isVideo ? vid : img, 0, 0, gw, gh);
+  const blob = await new Promise(r => grab.toBlob(r, "image/jpeg", 0.72));
+  if (!blob) throw new Error("Khong tao duoc frame JPEG.");
+  const r = await fetch(API + "/detect", {
+    method: "POST",
+    headers: { "Content-Type": "image/jpeg" },
+    body: blob
+  });
+  if (!r.ok) {
+    let m = "HTTP " + r.status;
+    try { m += ": " + (await r.json()).detail; } catch {}
+    throw new Error(m);
+  }
+  return r.json();
+}
+
+const DEADZONE = 0.0022;
+const snap = (oldV, newV) => Math.abs(newV - oldV) < DEADZONE ? oldV : newV;
+
+async function loop() {
+  for (;;) {
+    const san = img || (isVideo && vid.readyState >= 2);
+    const key = isVideo ? vid.currentTime : "img";
+
+    if (san && key !== lastKey) {
+      if (isVideo && vid.currentTime < prevVidTime - 0.2) {
+        needReset = true;
+        lac.clear();
+        demRa.clear();
+        demVao.clear();
+        lastSeen.clear();
+        pigs = [];
+      }
+      prevVidTime = isVideo ? vid.currentTime : 0;
+      const id = srcId;
+      try {
+        if (needReset) {
+          needReset = false;
+          try { await fetch(API + "/reset", { method: "POST" }); } catch {}
+        }
+        const t0 = performance.now();
+        const d = await detect();
+        if (id === srcId) {
+          lastKey = key; offline = false;
+          pingMs = Math.round(performance.now() - t0);
+          const prevMap = new Map(pigs.filter(p => p.id != null).map(p => [p.id, p]));
+          pigs = d.boxes.map((b, i) => {
+            const pid = b.track_id ?? (!isVideo ? i + 1 : null);
+            const old = pid != null ? prevMap.get(pid) : null;
+            const [nx1, ny1, nx2, ny2] = b.norm;
+            return {
+              x1: old ? old.x1 : nx1,
+              y1: old ? old.y1 : ny1,
+              x2: old ? old.x2 : nx2,
+              y2: old ? old.y2 : ny2,
+              tx1: old ? snap(old.tx1, nx1) : nx1,
+              ty1: old ? snap(old.ty1, ny1) : ny1,
+              tx2: old ? snap(old.tx2, nx2) : nx2,
+              ty2: old ? snap(old.ty2, ny2) : ny2,
+              id: pid
+            };
+          });
+          got = pigs.length; capNhatLuc = new Date();
+        }
+        continue;
+      } catch (e) {
+        offline = true;
+        errMsg = e.message === "Failed to fetch" ? "không gọi được " + API : e.message;
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+    await new Promise(r => setTimeout(r, 8));
+  }
+}
+
+function guiSuKien(ev){
+  fetch(API+"/events",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(ev)})
+    .catch(e=>console.error("Không gửi được sự kiện:",e));
+}
+
+const MAU={trong:"#10b981",ngoai:"#ef4444"},TEN={trong:"Trong",ngoai:"Ra ngoài"};
+function nhan(x,y,t,c){
+  ctx.font="600 11px Inter,system-ui,sans-serif";const w=ctx.measureText(t).width+12;
+  ctx.fillStyle=c;ctx.beginPath();(ctx.roundRect?ctx.roundRect(x,Math.max(0,y-19),w,19,5):ctx.rect(x,Math.max(0,y-19),w,19));ctx.fill();
+  ctx.fillStyle="#fff";ctx.fillText(t,x+6,Math.max(14,y-6));
+}
+function veChuong(){
+  const v=pen.pts.map(px);
+  if(!v.length)return;
+  ctx.beginPath();ctx.moveTo(v[0][0],v[0][1]);
+  for(let i=1;i<v.length;i++)ctx.lineTo(v[i][0],v[i][1]);
+  if(pen.closed){
+    ctx.closePath();ctx.fillStyle="rgba(16,185,129,.14)";ctx.fill();
+  }else if(hover){
+    ctx.lineTo(hover[0]*W,hover[1]*H);
+  }
+  ctx.strokeStyle=MAU.trong;ctx.lineWidth=2.5;ctx.setLineDash([8,5]);ctx.stroke();ctx.setLineDash([]);
+  const hIdx=hover?dinhGan(hover):-1;
+  v.forEach(([x,y],i)=>{
+    const r=(i===hIdx||(i===0&&!pen.closed))?7:5.5;
+    ctx.beginPath();ctx.arc(x,y,r,0,7);
+    ctx.fillStyle=MAU.trong;ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1.8;ctx.stroke();
+  });
+  const top=v.reduce((m,q)=>q[1]<m[1]?q:m,v[0]);
+  nhan(top[0],top[1],pen.closed?"Chuồng":"Đang vẽ…",MAU.trong);
+}
+function khung(ts){
+  const dt = lastFrameTs ? Math.min(0.05, (ts - lastFrameTs) / 1000) : 0.016;
+  lastFrameTs = ts;
+  const alpha = (isVideo && !vid.paused) ? (1 - Math.exp(-32 * dt)) : 1;
+  pigs.forEach(g => {
+    if (g.tx1 != null) {
+      g.x1 += (g.tx1 - g.x1) * alpha;
+      g.y1 += (g.ty1 - g.y1) * alpha;
+      g.x2 += (g.tx2 - g.x2) * alpha;
+      g.y2 += (g.ty2 - g.y2) * alpha;
+    }
+  });
+  xuLy();
+  $("b-khepkhung").hidden=!(pen&&!pen.closed&&pen.pts.length>=3);
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  if(isVideo&&vid.readyState>=2)ctx.drawImage(vid,0,0,W,H);
+  else if(img)ctx.drawImage(img,0,0,W,H);
+  else{
+    ctx.fillStyle="#26312a";ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#9fb3a6";ctx.font="14px Inter,system-ui,sans-serif";ctx.textAlign="center";
+    ctx.fillText("Chọn ảnh hoặc video chuồng ở mục Nguồn hình",W/2,H/2);ctx.textAlign="start";
+  }
+  if(pen)veChuong();
+  {
+    const tx=offline?"Lỗi backend: "+errMsg:got<0?"chưa nhận kết quả từ backend":"backend trả về "+got+" box"+(pingMs?" · "+pingMs+"ms":"");
+    ctx.font="600 12px Inter,system-ui,sans-serif";const w=ctx.measureText(tx).width+16;
+    ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(8,8,w,22);ctx.fillStyle=offline?"#f87171":"#fff";ctx.fillText(tx,16,23);
+  }
+  const n={trong:0,ngoai:0};
+  pigs.forEach(g=>{
+    const k=g.id;
+  const isSong=trangThai(g)==="ngoai";    
+  const st=isSong?"ngoai":"trong";
+    n[st]++;
+    const[a,b]=px([g.x1,g.y1]),[c,d]=px([g.x2,g.y2]);
+    const[tx,ty]=px(tamBoxThat(g));
+    if(st==="ngoai"){ctx.fillStyle="rgba(239,68,68,.18)";ctx.fillRect(a,b,c-a,d-b)}
+    ctx.strokeStyle=MAU[st];ctx.lineWidth=st==="ngoai"?3.5:2.2;ctx.strokeRect(a,b,c-a,d-b);
+    ctx.beginPath();ctx.arc(tx,ty,3.5,0,Math.PI*2);ctx.fillStyle=MAU[st];ctx.fill();
+    nhan(a,b,(k!=null?"#"+k+" ":"")+TEN[st],MAU[st]);
+  });
+  $("s-t").textContent=n.trong;$("s-n").textContent=n.ngoai;
+  $("s-ma").textContent=$("ma").value||"A";
+  $("s-tong").textContent=n.trong+n.ngoai;
+  $("s-up").textContent=capNhatLuc?hms(capNhatLuc):"--:--:--";
+  $("s-cb").textContent=logSK.length?logSK[logSK.length-1].thoi_gian.split("T")[1]:"Chưa có";
+  const bn=$("bn");
+  if(lac.size){
+    bn.className="banner show";bn.textContent="Phát hiện lợn sổng chuồng: "+[...lac.keys()].map(k=>"#"+k).join(", ");
+    $("dot").className="dot bad";$("lv").textContent="Cảnh báo";
+  }else{
+    bn.className="banner";
+    if(offline){$("dot").className="dot bad";$("lv").textContent="Lỗi backend: "+errMsg}
+    else{$("dot").className="dot";$("lv").textContent="Bình thường"+(got>=0?" · backend thấy "+got+" con":"")}
+  }
+  if(isVideo&&vid.duration&&!vid.paused)$("seek").value=vid.currentTime/vid.duration*1000;
+  requestAnimationFrame(khung);
+}
+taiKhung();setSize();requestAnimationFrame(khung);loop();
+
+document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{
+  const el=$(b.dataset.c);el.select();
+  (navigator.clipboard?navigator.clipboard.writeText(el.value):Promise.reject()).catch(()=>document.execCommand("copy"));
+  const t=b.textContent;b.textContent="Đã chép";setTimeout(()=>b.textContent=t,1200);
+});
+</script>
+</body>
+</html>
